@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/ashwinvivek/Documents/UCLA Documents/UCLA Classes/Quarter 2/CS 32"
+            argument = "/Users/ashwinvivek/Downloads/Bugs/field.txt"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -18,39 +18,40 @@ class StudentWorld;
 class Actor : public GraphObject
 {
 public:
-    Actor(int imgID, int x, int y, Direction startDirection, int depth):
-        GraphObject(imgID, x, y, startDirection, 1, depth),
-        m_alive(true)
+    Actor(StudentWorld* ptr, int imgID, int x, int y, Direction startDirection, int depth):
+        GraphObject(imgID, x, y, startDirection, depth, 0.25),
+        m_alive(true), myWorld(ptr), hasActedDuringTick(false)
         {
             setVisible(true);
         }
     virtual void doSomething() = 0;
     Direction pickRandomDirection();
-    void addToWorld(StudentWorld* world);
     StudentWorld* getWorld();
     void setDead();
     bool isAlive();
     
-    virtual bool doesBlockInsect()=0;
+    bool hasDoneSomethingThisTick();        //each actor can only act once even if position changed
+    void setActed(bool afterTick);     //sets hasActedDuringTick to true after each tick, and false before each tick
+
     virtual int howMuchFoodHere()=0;
     
 private:
     StudentWorld* myWorld;
     bool m_alive;
+    bool hasActedDuringTick;
 };
 
 class EnergyHolder : public Actor       //abstract class for all objects that have hit points
 {
 public:
-    EnergyHolder(int imgID, int x, int y, int initialHitPoints, bool isFood = false, Direction startDirection = none, int depth = 0): Actor(imgID, x,y,startDirection, depth), energyUnits(initialHitPoints){}
+    EnergyHolder(StudentWorld* ptr, int imgID, int x, int y, int initialHitPoints, bool isFood = false, Direction startDirection = none, int depth = 0): Actor(ptr,imgID, x,y,startDirection, depth), energyUnits(initialHitPoints), isFood(isFood){}
     virtual void doSomething()=0;
     int getEnergyUnits() const;
     void increaseEnergyBy(int units);
     void decreaseEnergyBy(int units);
     
-    bool myFoodEaten(int& howMuch);
+    bool myFoodEaten(int& howMuch, int unitsToConsume);
     
-    virtual bool doesBlockInsect()=0;
     virtual int howMuchFoodHere()=0;
     
 private:
@@ -61,31 +62,29 @@ private:
 class Deterrent: public Actor      //Pebbles, poison, and water pools
 {
 public:
-    Deterrent(int imgID, int x, int y, Direction start, int depth): Actor(imgID, x,y,start,depth){}
+    Deterrent(StudentWorld* ptr, int imgID, int x, int y, Direction start, int depth): Actor(ptr, imgID, x,y,start,depth){}
     
     virtual void doSomething() = 0;
-    
-    virtual bool doesBlockInsect()=0;
-    virtual int howMuchFoodHere()=0;
+
+    virtual int howMuchFoodHere();
 };
 
 class Insect : public EnergyHolder     //all insects have hit points
 {
 public:
-    Insect(int imgID, int x, int y,  int initialHitPoints, Direction startDirection = none, int depth = 0): EnergyHolder(imgID, x, y, initialHitPoints, false, startDirection, depth), isStunned(false), isBitten(false), m_sleepTicks(0){};
+    Insect(StudentWorld* ptr, int imgID, int x, int y,  int initialHitPoints, Direction startDirection = none, int depth = 0): EnergyHolder(ptr, imgID, x, y, initialHitPoints, false, startDirection, depth), isStunned(false), isBitten(false), m_sleepTicks(0){};
     virtual void doSomething() = 0;
 //    virtual void setPoisoned();
 //    virtual void setBitten();
-    virtual bool doesBlockInsect()=0;
     
     bool checkIfStunnedOrSleeping();
     void decreaseSleepTicks();
     void resetSleepTicks();
     
-    bool eatFood();
+    bool eatFood(bool isGrasshopper);
     void becomeFood();
     
-    virtual int howMuchFoodHere()=0;
+    virtual int howMuchFoodHere();
     
 private:
     bool isStunned;
@@ -98,21 +97,17 @@ private:
 class GrassHopper : public Insect
 {
 public:
-    GrassHopper(int startX, int startY, int imageID, int initialHitPoints = 1600):
-    Insect(imageID, startY, startY, initialHitPoints, pickRandomDirection(), 1)
+    GrassHopper(StudentWorld* ptr, int startX, int startY, int imageID = IID_ADULT_GRASSHOPPER, int initialHitPoints = 1600):
+    Insect(ptr, imageID, startX, startY, initialHitPoints, pickRandomDirection(), 1)
     {
         distanceToWalk = randomDistance();
     }
     virtual void doSomething();
     int randomDistance();
     
-    
-    virtual bool doesBlockInsect();
-    virtual int howMuchFoodHere();
-    
     int getDistanceToWalk();
     void resetDistanceToWalk(int d);
-    void walk();    //decrements by 1
+    void walk(Direction curr);    //decrements by 1 and moves the grasshopper
 
 private:
     int distanceToWalk;
@@ -122,13 +117,11 @@ class Ant : public Insect
 {
 public:
     //colony number is the anthill index (compiler index)
-    Ant(Compiler* whichCompiler, int imageID, int startX, int startY):
-    Insect(imageID, startX, startY,  1500, pickRandomDirection(), 1),
+    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY):
+    Insect(ptr, imageID, startX, startY,  1500, pickRandomDirection(), 1),
     m_pointerToMyCompilerObject(whichCompiler),
     instructionCounter(0){}
     bool instructionInterpreter();
-    virtual bool doesBlockInsect();
-    virtual int howMuchFoodHere();
     
 private:
     Compiler* m_pointerToMyCompilerObject;
@@ -140,10 +133,8 @@ private:
 class BabyGrassHopper : public GrassHopper
 {
 public:
-    BabyGrassHopper(int startX, int startY): GrassHopper(startX, startY, IID_BABY_GRASSHOPPER,500){}
+    BabyGrassHopper(StudentWorld* ptr, int startX, int startY): GrassHopper(ptr, startX, startY, IID_BABY_GRASSHOPPER,500){}
     virtual void doSomething();
-    virtual bool doesBlockInsect();
-    virtual int howMuchFoodHere();
 private:
 
 };
@@ -154,17 +145,15 @@ class Anthill : public EnergyHolder
 {
 public:
     //Constructor
-    Anthill(Compiler* whichCompiler, int colonyNumber, int xPos, int yPos):
-    EnergyHolder(IID_ANT_HILL, xPos, yPos, 8999, false, right, 2),
+    Anthill(StudentWorld* ptr, Compiler* whichCompiler, int colonyNumber, int xPos, int yPos):
+    EnergyHolder(ptr, IID_ANT_HILL, xPos, yPos, 8999, false, right, 2),
     m_compiler(whichCompiler),
     m_numberOfAnts(5)
     {
         m_colonyName = m_compiler->getColonyName();
     }
     virtual void doSomething();
-    virtual bool doesBlockInsect();
     virtual int howMuchFoodHere();
-    
     //Accessors
     int getNumberOfAnts();
     std::string getColonyName();
@@ -181,9 +170,8 @@ private:
 class Food : public EnergyHolder
 {
 public:
-    Food(int x, int y, int startUnits = 6000): EnergyHolder(IID_FOOD, x, y, startUnits, true, right, 2){}
+    Food(StudentWorld* ptr, int x, int y, int startUnits = 6000): EnergyHolder(ptr, IID_FOOD, x, y, startUnits, true, right, 2){}
     virtual void doSomething();
-    virtual bool doesBlockInsect();
     virtual int howMuchFoodHere();
 };
 
@@ -193,10 +181,8 @@ public:
 class Pebble : public Deterrent
 {
 public:
-    Pebble(int x, int y): Deterrent(IID_ROCK,x,y,right,1){}
+    Pebble(StudentWorld* ptr, int x, int y): Deterrent(ptr,IID_ROCK,x,y,right,1){}
     virtual void doSomething();
-    virtual bool doesBlockInsect();
-    virtual int howMuchFoodHere();
 };
 
 

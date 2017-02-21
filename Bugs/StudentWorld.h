@@ -31,12 +31,12 @@ public:
     bool checkForCompilerError(Compiler* c);
     bool loadFieldFile();
     
-    void addObjectToSimulation(Actor* object, int x, int y);        //add to m_container
     void removeObjectFromSimulation(Actor* object, int x, int y);
-    void changeObjectPosition(Actor* object, int originalX, int originalY, int x, int y);
     
-    bool doesBlockInsect(Actor* a, int x, int y, Actor::Direction curr);
-    int checkForFood(int x, int y);   //returns how much food is in the square
+//    bool doesBlockInsect(Actor* a, int x, int y, Actor::Direction curr);
+    bool hasPebbleAt(int x, int y, Actor::Direction curr);
+    int consumableFood(int x, int y, int units);   //returns how much food is in the square that can be eaten by a specific insect (Ants: 100, Grasshoppers: 200)
+    int totalFood(int x, int y);
     
     Actor* getFoodObject(int x, int y);
     void addFoodToSquare(int x, int y);

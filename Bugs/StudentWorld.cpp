@@ -65,12 +65,12 @@ int StudentWorld::init()
 //        else
 //            m_anthill[3]->setCompiler(compilerForEntrant3);
 //    }
-    return 0;
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 int StudentWorld::move()
 {
-    updateTicks();
+    updateTicks(); //increments ticks by one and also sets each actor's didAct variable to false for the new tick
     
     for(int i=0; i<64; i++)
     {
@@ -78,34 +78,57 @@ int StudentWorld::move()
         {
             list<Actor*>::iterator it;
             it = m_container[i][j].begin();
-            
             while(it!=m_container[i][j].end())
             {
+                Actor *q = *it;
+                int oldX = q->getX();
+                int oldY = q->getY();
+                
+                if(q->isAlive() && !q->hasDoneSomethingThisTick())
+                {
+                    (q)->doSomething();
+                    int newX = q->getX();
+                    int newY = q->getY();
+                    if(newX != oldX || newY != oldY){    //object moved
+                        Actor* temp = q;
+                        m_container[newX][newY].push_back(temp);
+                        temp->setActed(true);
+                        m_container[i][j].erase(it);
+                    }
+                }
+                else if(!q->isAlive())
+                {
+                    m_container[i][j].erase(it);
+                }
                 it++;
-                if((*it)->isAlive())
-                    (*it)->doSomething();
-                else
-                    removeObjectFromSimulation((*it), i, j);
             }
         }
     }
-    return 0;
+
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
-    return;
+    for(int i=0; i<64; i++)
+    {
+        for(int j=0; j<64; j++)
+        {
+            list<Actor*>::iterator it;
+            it = m_container[i][j].begin();
+            while(it!=m_container[i][j].end())
+            {
+                delete *it;
+                m_container[i][j].erase(it);
+            }
+        }
+    }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Container functions (list)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void StudentWorld::addObjectToSimulation(Actor *object, int x, int y)
-{
-    m_container[x][y].push_back(object);
-    object->addToWorld(this);
-}
 
 void StudentWorld::removeObjectFromSimulation(Actor *object, int x, int y)
 {
@@ -116,81 +139,55 @@ void StudentWorld::removeObjectFromSimulation(Actor *object, int x, int y)
     {
         it++;
     }
-    m_container[x][y].erase(it);
+    if(*it == object)
+        m_container[x][y].erase(it);
 }
 
-void StudentWorld::changeObjectPosition(Actor* object, int originalX, int originalY, int x, int y)
+bool StudentWorld::hasPebbleAt(int x, int y, Actor::Direction curr)
 {
-    addObjectToSimulation(object, x, y);
-    removeObjectFromSimulation(object, originalX, originalY);
-}
-
-bool StudentWorld::doesBlockInsect(Actor* a, int x, int y, Actor::Direction curr) //checks if pebble in the direction that the insect is trying to move
-{
-    list<Actor*>::iterator it;    
-    switch(curr)
+    int x1 = x;
+    int y1 = y;
+    switch (curr)
     {
         case Actor::up:
-            if(y>0)
-            {
-                it = m_container[x][y-1].begin();
-                while(it!= m_container[x][y-1].end())
-                {
-                    if((*it)->doesBlockInsect())
-                    {
-                        return true;
-                        break;
-                    }
-                }
+            if(y>1){
+                y1 = y-1;
             }
+            else
+                return true;
             break;
         case Actor::down:
-            if(y<VIEW_HEIGHT)
-            {
-                it = m_container[x][y+1].begin();
-                while(it!=m_container[x][y+1].end()){
-                    if((*it)->doesBlockInsect())
-                    {
-                        return true;
-                        break;
-                    }
-                }
+            if(y<VIEW_HEIGHT-2){
+                y1 = y+1;
             }
+            else
+                return true;
             break;
         case Actor::left:
-            if(x>0)
-            {
-                it = m_container[x-1][y].begin();
-                while(it!=m_container[x-1][y].end())
-                {
-                    if((*it)->doesBlockInsect())
-                    {
-                        return true;
-                        break;
-                    }
-                }
+            if(x>1){
+                x1 = x-1;
             }
+            else
+                return true;
             break;
         case Actor::right:
-            if(x<VIEW_WIDTH)
-            {
-                it = m_container[x+1][y].begin();
-                while(it!=m_container[x+1][y].end())
-                {
-                    if((*it)->doesBlockInsect())
-                    {
-                        return true;
-                        break;
-                    }
-                }
+            if(x<VIEW_WIDTH-2){
+                x1 = x+1;
             }
-        case Actor::none:
+            else
+                return true;
             break;
+    }
+    for(list<Actor*>::iterator it = m_container[x1][y1].begin(); it!=m_container[x1][y1].end(); it++)
+    {
+        Actor* q = *it;
+        if(typeid(*q)==typeid(Pebble))
+            return true;
     }
     return false;
 }
 
-int StudentWorld::checkForFood(int x, int y)
+int StudentWorld::consumableFood(int x, int y, int units)
 {
     list<Actor*>::iterator it;
     it = m_container[x][y].begin();
@@ -198,8 +195,8 @@ int StudentWorld::checkForFood(int x, int y)
     {
         if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
         {
-            if((*it)->howMuchFoodHere() >=200)
-                return 200;
+            if((*it)->howMuchFoodHere() >= units)
+                return units;
             else
             {
                 (*it)->setDead();   //all the food in this square was eaten
@@ -210,7 +207,22 @@ int StudentWorld::checkForFood(int x, int y)
     return 0;
 }
 
-Actor* StudentWorld::getFoodObject(int x, int y)        //returns the actor object that the existing food object(if it exists) is derived from
+int StudentWorld::totalFood(int x, int y)
+{
+    list<Actor*>::iterator it;
+    it = m_container[x][y].begin();
+    while(it != m_container[x][y].end())
+    {
+        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
+        {
+            return (*it)->howMuchFoodHere();
+        }
+    }
+    return 0;
+
+}
+
+Actor* StudentWorld::getFoodObject(int x, int y) //returns the actor object that the existing food object(if it exists) is derived from
 {
     list<Actor*>::iterator it;
     it = m_container[x][y].begin();
@@ -226,12 +238,11 @@ Actor* StudentWorld::getFoodObject(int x, int y)        //returns the actor obje
 
 void StudentWorld::addFoodToSquare(int x, int y)
 {
-    int foodAlreadyThere = checkForFood(x, y);
-    
-    if(getFoodObject(x, y) == nullptr)
-        addObjectToSimulation(new Food(x, y, 100), x, y);
+    int foodAlreadyThere = totalFood(x, y);
+    if(getFoodObject(x, y) == nullptr)          //if there is no food object at this square
+        m_container[x][y].push_back(new Food(this,x, y, 100));
     else{
-        addObjectToSimulation(new Food(x, y, 100+foodAlreadyThere), x, y);
+        m_container[x][y].push_back(new Food(this,x, y, 100+foodAlreadyThere));
         removeObjectFromSimulation(getFoodObject(x, y), x, y);
     }
 }
@@ -243,6 +254,20 @@ int StudentWorld::getCurrentTicks() const
 
 void StudentWorld::updateTicks()
 {
+    for(int i=0; i<64; i++)
+    {
+        for(int j=0; j<64; j++)
+        {
+            list<Actor*>::iterator it;
+            it = m_container[i][j].begin();
+            while(it!=m_container[i][j].end())
+            {
+                Actor* q = *it;
+                q->setActed(false);
+                it++;
+            }
+        }
+    }
     m_ticks++;
 }
 
@@ -293,9 +318,9 @@ bool StudentWorld::loadFieldFile()
     
     Anthill  *ah0, *ah1, *ah2, *ah3;
     
-    bool loadedFieldSuccessfully = f.loadField(fieldFileName);
+    Field::LoadResult loadedFieldSuccessfully = f.loadField(fieldFileName);
     
-    if(!loadedFieldSuccessfully)
+    if(loadedFieldSuccessfully==Field::load_fail_bad_format)
         return false;
     for(int i=0; i<64; i++)         //going through each column
     {
@@ -328,10 +353,10 @@ bool StudentWorld::loadFieldFile()
 //                case Field::FieldItem::poison:
 //                    //add to vector
                 case Field::FieldItem::grasshopper:
-                    addObjectToSimulation(new BabyGrassHopper(i,j), i, j);
+                    m_container[i][j].push_back(new BabyGrassHopper(this,i,j));
                     break;
                 case Field::FieldItem::rock:
-                    addObjectToSimulation(new Pebble(i,j), i, j);
+                    m_container[i][j].push_back(new Pebble(this,i,j));
                     break;
             
             }

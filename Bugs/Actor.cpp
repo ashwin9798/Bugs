@@ -14,9 +14,12 @@
 #include "Compiler.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Actor Base Class Implementation
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+/**************************************************************************************************/
 
+// Actor Base Class Implementation
+
+/**************************************************************************************************/
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Random start direction
 Actor::Direction Actor::pickRandomDirection()
@@ -43,10 +46,6 @@ Actor::Direction Actor::pickRandomDirection()
     return start;
 }
 
-void Actor::addToWorld(StudentWorld *world)
-{
-    myWorld = world;
-}
 StudentWorld* Actor::getWorld()
 {
     return myWorld;
@@ -59,10 +58,62 @@ bool Actor::isAlive()
 {
     return m_alive;
 }
+bool Actor::hasDoneSomethingThisTick()
+{
+    return hasActedDuringTick;
+}
+void Actor::setActed(bool afterTick)
+{
+    if(afterTick)
+        hasActedDuringTick = true;
+    else
+        hasActedDuringTick = false;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Energy Holder Base Class Implementation
+/**************************************************************************************************/
+
+// Deterrent Base Class Implementation  (Actor -> Deterrent)
+
+/**************************************************************************************************/
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Deterrent::howMuchFoodHere()
+{
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//Deterrent Implementations
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Pebble
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Pebble::doSomething()
+{
+    
+    return;
+}
+
+    // Water Pool
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    // Poison
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/**************************************************************************************************/
+
+// Energy Holder Base Class Implementation (Actor -> EnergyHolder)
+
+/**************************************************************************************************/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int EnergyHolder::getEnergyUnits() const
@@ -77,54 +128,22 @@ void EnergyHolder::decreaseEnergyBy(int units)
 {
     energyUnits -= units;
 }
-bool EnergyHolder::myFoodEaten(int& howMuch)
+bool EnergyHolder::myFoodEaten(int& howMuch, int unitsToConsume)
 {
     if(isFood)
     {
-        decreaseEnergyBy(getWorld()->checkForFood(getX(), getY()));
-        howMuch = getWorld()->checkForFood(getX(), getY());
+        decreaseEnergyBy(getWorld()->consumableFood(getX(), getY(), unitsToConsume));
+        howMuch = getWorld()->consumableFood(getX(), getY(), unitsToConsume);
         return true;
     }
     return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Insect Base Class Implementation
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Insect::checkIfStunnedOrSleeping()
-{
-    if(m_sleepTicks > 0 || isStunned)
-        return true;
-    return false;
-}
-void Insect::decreaseSleepTicks()
-{
-    m_sleepTicks--;
-}
-bool Insect::eatFood()    //returns true if food was eaten, otherwise false
-{
-    int howMuch = 0;
-    if(myFoodEaten(howMuch)) //pass in a locally created variable by reference to see how much was eaten
-    {
-        increaseEnergyBy(howMuch);
-        return true;
-    }
-    return false;
-}
-
-void Insect::becomeFood()   //when any insect dies, it becomes food
-{
-    getWorld()->addFoodToSquare(getX(), getY());
-}
-
-void Insect::resetSleepTicks()
-{
-    m_sleepTicks = 2;
-}
-
+//Energy Holder Implementations
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Anthill Implementation
+
+// Anthill
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Anthill::doSomething()
@@ -149,15 +168,77 @@ void Anthill::setCompiler(Compiler* c)
 {
     m_compiler = c;
 }
-bool Anthill::doesBlockInsect()
-{
-    return false;
-}
 
 int Anthill::howMuchFoodHere()
 {
     return 0;
 }
+
+
+// Food
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+void Food::doSomething()
+{
+    return;
+}
+
+int Food::howMuchFoodHere()
+{
+    return 0;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/**************************************************************************************************/
+
+// Insect Base Class Implementation (Actor -> EnergyHolder -> Insect)
+
+/**************************************************************************************************/
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Insect::checkIfStunnedOrSleeping()
+{
+    if(m_sleepTicks > 0 || isStunned)
+        return true;
+    return false;
+}
+void Insect::decreaseSleepTicks()
+{
+    m_sleepTicks--;
+}
+bool Insect::eatFood(bool isGrasshopper)    //returns true if food was eaten, otherwise false
+{
+    int unitsToConsume;
+    if(isGrasshopper)
+        unitsToConsume = 200;
+    else
+        unitsToConsume = 100;
+    
+    int howMuch = 0;
+    if(myFoodEaten(howMuch, unitsToConsume)) //pass in a locally created variable by reference to see how much was eaten
+    {
+        increaseEnergyBy(howMuch);
+        return true;
+    }
+    return false;
+}
+
+void Insect::becomeFood()   //when any insect dies, it becomes food
+{
+    getWorld()->addFoodToSquare(getX(), getY());
+}
+
+void Insect::resetSleepTicks()
+{
+    m_sleepTicks = 2;
+}
+
+int Insect::howMuchFoodHere()
+{
+    return 0;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ant Implementation
@@ -170,17 +251,6 @@ bool Ant::instructionInterpreter()
     return true;
 }
 
-bool Ant::doesBlockInsect()
-{
-    return false;
-}
-
-int Ant::howMuchFoodHere()
-{
-    return 0;
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Grasshopper Implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,18 +260,12 @@ void GrassHopper::doSomething()
 {
     return;
 }
-bool GrassHopper::doesBlockInsect()
-{
-    return false;
-}
+
 int GrassHopper::randomDistance()
 {
     return (rand() % 9) + 2;
 }
-int GrassHopper::howMuchFoodHere()
-{
-    return 0;
-}
+
 void GrassHopper::resetDistanceToWalk(int d)
 {
     distanceToWalk = d;
@@ -210,8 +274,25 @@ int GrassHopper::getDistanceToWalk()
 {
     return distanceToWalk;
 }
-void GrassHopper::walk()
+void GrassHopper::walk(Direction curr)
 {
+    switch(curr)
+    {
+        case up:
+            moveTo(getX(), getY()-1);
+            break;
+        case down:
+            moveTo(getX(), getY()+1);
+            break;
+        case left:
+            moveTo(getX()-1, getY());
+            break;
+        case right:
+            moveTo(getX()+1, getY());
+            break;
+        case none:
+            break;
+    }
     distanceToWalk--;
 }
 
@@ -224,6 +305,10 @@ void GrassHopper::walk()
 void BabyGrassHopper::doSomething()
 {
     decreaseEnergyBy(1);
+    
+    if(getEnergyUnits()+getWorld()->getCurrentTicks() != 500){
+        ;
+    }
     
     if(getEnergyUnits() == 0)
     {
@@ -244,60 +329,28 @@ void BabyGrassHopper::doSomething()
         return;
     }
     
-    if(eatFood())
-    {
-        if(rand()%2 == 0){
-            if(getDistanceToWalk()==0)
-            {
-                setDirection(pickRandomDirection());
-                resetDistanceToWalk(randomDistance());
-            }
-            Direction current = getDirection();
-            if(getWorld()->doesBlockInsect(this, getX(), getY(), current))
-            {
-                resetDistanceToWalk(0);
-            }
-            else
-            {
-                walk();
-            }
+    //if(eatFood(true))
+    //{
+    if(rand()%2 == 0){
+        if(getDistanceToWalk()==0)
+        {
+            setDirection(pickRandomDirection());
+            resetDistanceToWalk(randomDistance());
+        }
+        Direction current = getDirection();
+        if(getWorld()->hasPebbleAt(getX(), getY(), current))
+        {
+            resetDistanceToWalk(0);
+        }
+        else
+        {
+            walk(current);
         }
     }
+    //}
     resetSleepTicks();
 }
-bool BabyGrassHopper::doesBlockInsect()
-{
-    return false;
-}
-int BabyGrassHopper::howMuchFoodHere()
-{
-    return 0;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Pebble Implementation
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Pebble::doSomething()
-{
-    return;
-}
-bool Pebble::doesBlockInsect()
-{
-    return true;
-}
-int Pebble::howMuchFoodHere()
-{
-    return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Food Implementation
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int Food::howMuchFoodHere()
-{
-    return 0;
-}
 
