@@ -26,7 +26,7 @@ public:
         }
     virtual void doSomething() = 0;
     Direction pickRandomDirection();
-    StudentWorld* getWorld();
+    StudentWorld* getWorld() const;
     void setDead();
     bool isAlive();
     
@@ -75,7 +75,10 @@ public:
     Insect(StudentWorld* ptr, int imgID, int x, int y,  int initialHitPoints, Direction startDirection = none, int depth = 0): EnergyHolder(ptr, imgID, x, y, initialHitPoints, false, startDirection, depth), isStunned(false), isBitten(false), m_sleepTicks(0){};
     virtual void doSomething() = 0;
 //    virtual void setPoisoned();
-//    virtual void setBitten();
+    virtual void setBitten(int damage)=0;
+    virtual int howMuchFoodHere();
+    
+    void bite(int strength);    //all insects bite the same way, with differing strengths
     
     bool checkIfStunnedOrSleeping();
     void decreaseSleepTicks();
@@ -83,8 +86,8 @@ public:
     
     bool eatFood(bool isGrasshopper);
     void becomeFood();
-    
-    virtual int howMuchFoodHere();
+
+    bool isInsectDead();
     
 private:
     bool isStunned;
@@ -103,12 +106,15 @@ public:
         distanceToWalk = randomDistance();
     }
     virtual void doSomething();
+    virtual void setBitten(int damage);
     int randomDistance();
     
-    int getDistanceToWalk();
+    int getDistanceToWalk() const;
     void resetDistanceToWalk(int d);
+    
     void walk(Direction curr);    //decrements by 1 and moves the grasshopper
-
+    void jumpRandomly();
+    
 private:
     int distanceToWalk;
 };
@@ -121,6 +127,8 @@ public:
     Insect(ptr, imageID, startX, startY,  1500, pickRandomDirection(), 1),
     m_pointerToMyCompilerObject(whichCompiler),
     instructionCounter(0){}
+    virtual void doSomething();
+    virtual void setBitten(int damage);
     bool instructionInterpreter();
     
 private:
@@ -135,6 +143,8 @@ class BabyGrassHopper : public GrassHopper
 public:
     BabyGrassHopper(StudentWorld* ptr, int startX, int startY): GrassHopper(ptr, startX, startY, IID_BABY_GRASSHOPPER,500){}
     virtual void doSomething();
+    virtual void setBitten(int damage);
+    void becomeAdult();
 private:
 
 };

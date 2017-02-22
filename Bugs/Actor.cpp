@@ -12,6 +12,7 @@
 #include "StudentWorld.h"
 #include <random>
 #include "Compiler.h"
+#include <cmath>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
@@ -46,7 +47,7 @@ Actor::Direction Actor::pickRandomDirection()
     return start;
 }
 
-StudentWorld* Actor::getWorld()
+StudentWorld* Actor::getWorld() const
 {
     return myWorld;
 }
@@ -200,7 +201,10 @@ int Food::howMuchFoodHere()
 bool Insect::checkIfStunnedOrSleeping()
 {
     if(m_sleepTicks > 0 || isStunned)
+    {
+        m_sleepTicks--;
         return true;
+    }
     return false;
 }
 void Insect::decreaseSleepTicks()
@@ -224,7 +228,7 @@ bool Insect::eatFood(bool isGrasshopper)    //returns true if food was eaten, ot
     return false;
 }
 
-void Insect::becomeFood()   //when any insect dies, it becomes food
+void Insect::becomeFood()   //when any insect dies, it becomes 100 units of food in that position
 {
     getWorld()->addFoodToSquare(getX(), getY());
 }
@@ -237,6 +241,31 @@ void Insect::resetSleepTicks()
 int Insect::howMuchFoodHere()
 {
     return 0;
+}
+bool Insect::isInsectDead()
+{
+    if(getEnergyUnits() <= 0)
+    {
+        becomeFood();
+        setDead();
+        return true;
+    }
+    return false;
+}
+void Insect::bite(int strength)     //the strength of each insect's bite is different
+{
+    int countInsects =0;
+    
+    vector<Actor*> insectsInSameSquare;
+    for(list <Actor*>::iterator it = getWorld()->getObjectsAt(getX(), getY()).begin(); it!=getWorld()->getObjectsAt(getX(), getY()).end(); it++)
+    {
+        Actor* q = *it;
+        if(typeid(*q) == typeid(Insect))
+            insectsInSameSquare.push_back(*it);
+    }
+    Actor* InsectToBite = insectsInSameSquare[randInt(0, (insectsInSameSquare.size())-1)];
+    Insect* q = dynamic_cast<Insect*>(InsectToBite);
+    q->setBitten(strength);
 }
 
 
@@ -251,6 +280,12 @@ bool Ant::instructionInterpreter()
     return true;
 }
 
+void Ant::setBitten(int damage)
+{
+    return;
+    //ADD MORE
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Grasshopper Implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,9 +293,23 @@ bool Ant::instructionInterpreter()
 
 void GrassHopper::doSomething()
 {
-    return;
+    decreaseEnergyBy(1);
+    
+    if(isInsectDead())
+        return;
+    if(checkIfStunnedOrSleeping())
+        return;
+    if(randInt(1, 3)==1)
+        bite(50);
+    else
+    {
+        if(randInt(1,10) == 1)          //1 in 10 chance
+        {
+        
+        }
+    }
+    
 }
-
 int GrassHopper::randomDistance()
 {
     return (rand() % 9) + 2;
@@ -270,7 +319,7 @@ void GrassHopper::resetDistanceToWalk(int d)
 {
     distanceToWalk = d;
 }
-int GrassHopper::getDistanceToWalk()
+int GrassHopper::getDistanceToWalk() const
 {
     return distanceToWalk;
 }
@@ -279,10 +328,10 @@ void GrassHopper::walk(Direction curr)
     switch(curr)
     {
         case up:
-            moveTo(getX(), getY()-1);
+            moveTo(getX(), getY()+1);
             break;
         case down:
-            moveTo(getX(), getY()+1);
+            moveTo(getX(), getY()-1);
             break;
         case left:
             moveTo(getX()-1, getY());
@@ -296,6 +345,28 @@ void GrassHopper::walk(Direction curr)
     distanceToWalk--;
 }
 
+void GrassHopper::setBitten(int damage)
+{
+    decreaseEnergyBy(damage);
+    if(isInsectDead())
+        return;
+    if(rand()%2 == 1)       //50% chance
+    {
+        bite(50);
+    }
+}
+
+void GrassHopper::jumpRandomly()
+{
+    bool didFindDestination = false;
+    int destX;
+    int destY;
+    
+    int angle = randInt(0, 2);
+    int distance = randInt(0, 10);
+        
+    destX = distance*cos(angle);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Baby Grasshopper Implementation
@@ -305,25 +376,16 @@ void GrassHopper::walk(Direction curr)
 void BabyGrassHopper::doSomething()
 {
     decreaseEnergyBy(1);
-    
-    if(getEnergyUnits()+getWorld()->getCurrentTicks() != 500){
-        ;
-    }
-    
-    if(getEnergyUnits() == 0)
-    {
-        becomeFood();
-        setDead();
+
+    if(isInsectDead())
         return;
-    }
+    
     if(checkIfStunnedOrSleeping())
-    {
-        decreaseSleepTicks();
         return;
-    }
+    
     if(getEnergyUnits() >= 1600)
     {
-        //turn into an adult grasshopper
+        becomeAdult();
         becomeFood();
         setDead();
         return;
@@ -351,6 +413,17 @@ void BabyGrassHopper::doSomething()
     resetSleepTicks();
 }
 
+void BabyGrassHopper::becomeAdult()
+{
+    getWorld()->getObjectsAt(getX(), getY()).push_back(new GrassHopper(getWorld(), getX(), getY()));
+}
+
+void BabyGrassHopper::setBitten(int damage)
+{
+    decreaseEnergyBy(damage);
+    if(isInsectDead())
+        return;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

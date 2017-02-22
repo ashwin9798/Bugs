@@ -21,6 +21,8 @@ public:
     virtual int move();
 
     virtual void cleanUp();
+    
+    ~StudentWorld();
 
     void displayGameText();
     std::string formatGameText(int ticks, int antsAnt0, int antsAnt1, int antsAnt2, int antsAnt3, int winningAntNumber);
@@ -31,6 +33,7 @@ public:
     bool checkForCompilerError(Compiler* c);
     bool loadFieldFile();
     
+    list<Actor*> getObjectsAt(int x, int y);
     void removeObjectFromSimulation(Actor* object, int x, int y);
     
 //    bool doesBlockInsect(Actor* a, int x, int y, Actor::Direction curr);

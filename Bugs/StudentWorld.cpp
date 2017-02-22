@@ -98,13 +98,13 @@ int StudentWorld::move()
                 }
                 else if(!q->isAlive())
                 {
+                    q->setVisible(false);
                     m_container[i][j].erase(it);
                 }
                 it++;
             }
         }
     }
-
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -118,17 +118,26 @@ void StudentWorld::cleanUp()
             it = m_container[i][j].begin();
             while(it!=m_container[i][j].end())
             {
-                delete *it;
                 m_container[i][j].erase(it);
+                it++;
             }
         }
     }
 
 }
+StudentWorld::~StudentWorld()
+{
+    cleanUp();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Container functions (list)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+list<Actor*> StudentWorld::getObjectsAt(int x, int y)
+{
+    return m_container[x][y];
+}
 
 void StudentWorld::removeObjectFromSimulation(Actor *object, int x, int y)
 {
@@ -149,14 +158,14 @@ bool StudentWorld::hasPebbleAt(int x, int y, Actor::Direction curr)
     int y1 = y;
     switch (curr)
     {
-        case Actor::up:
+        case Actor::down:
             if(y>1){
                 y1 = y-1;
             }
             else
                 return true;
             break;
-        case Actor::down:
+        case Actor::up:
             if(y<VIEW_HEIGHT-2){
                 y1 = y+1;
             }
@@ -217,6 +226,7 @@ int StudentWorld::totalFood(int x, int y)
         {
             return (*it)->howMuchFoodHere();
         }
+        it++;
     }
     return 0;
 
@@ -232,6 +242,7 @@ Actor* StudentWorld::getFoodObject(int x, int y) //returns the actor object that
         {
             return *it;
         }
+        it++;
     }
     return nullptr;
 }
@@ -283,7 +294,6 @@ void StudentWorld::updateTicks()
 //    }
 //    return maximum;
 //}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Field File Functions
@@ -346,8 +356,8 @@ bool StudentWorld::loadFieldFile()
 //                    m_anthill[3] = new Anthill(nullptr, IID_ANT_TYPE3, i, j);
 //                    ah3 = new Anthill(nullptr, 0, i, j);
 //                    addObjectToSimulation(ah3, i, j);
-//                case Field::FieldItem::food:
-//                    //add to vector
+                case Field::FieldItem::food:
+                    m_container[i][j].push_back(new Food(this, i, j));
 //                case Field::FieldItem::water:
 //                    //add to vector
 //                case Field::FieldItem::poison:
