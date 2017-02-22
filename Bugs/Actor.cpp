@@ -14,6 +14,8 @@
 #include "Compiler.h"
 #include <cmath>
 
+const double PI = 4*atan(1.0);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
 
@@ -94,7 +96,6 @@ int Deterrent::howMuchFoodHere()
 
 void Pebble::doSomething()
 {
-    
     return;
 }
 
@@ -131,9 +132,8 @@ void EnergyHolder::decreaseEnergyBy(int units)
 }
 bool EnergyHolder::myFoodEaten(int& howMuch, int unitsToConsume)
 {
-    if(isFood)
+    if(getWorld()->totalFood(getX(), getY())>0)
     {
-        decreaseEnergyBy(getWorld()->consumableFood(getX(), getY(), unitsToConsume));
         howMuch = getWorld()->consumableFood(getX(), getY(), unitsToConsume);
         return true;
     }
@@ -185,10 +185,8 @@ void Food::doSomething()
 
 int Food::howMuchFoodHere()
 {
-    return 0;
+    return getEnergyUnits();
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
@@ -252,22 +250,6 @@ bool Insect::isInsectDead()
     }
     return false;
 }
-void Insect::bite(int strength)     //the strength of each insect's bite is different
-{
-    int countInsects =0;
-    
-    vector<Actor*> insectsInSameSquare;
-    for(list <Actor*>::iterator it = getWorld()->getObjectsAt(getX(), getY()).begin(); it!=getWorld()->getObjectsAt(getX(), getY()).end(); it++)
-    {
-        Actor* q = *it;
-        if(typeid(*q) == typeid(Insect))
-            insectsInSameSquare.push_back(*it);
-    }
-    Actor* InsectToBite = insectsInSameSquare[randInt(0, (insectsInSameSquare.size())-1)];
-    Insect* q = dynamic_cast<Insect*>(InsectToBite);
-    q->setBitten(strength);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ant Implementation
@@ -300,13 +282,37 @@ void GrassHopper::doSomething()
     if(checkIfStunnedOrSleeping())
         return;
     if(randInt(1, 3)==1)
-        bite(50);
+        getWorld()->bite(50, getX(), getY());
     else
     {
         if(randInt(1,10) == 1)          //1 in 10 chance
         {
-        
+            jumpRandomly();
+            resetSleepTicks();
+            return;
         }
+        if(eatFood(true))
+            if(rand()%2 == 0)
+            {
+                resetSleepTicks();
+                return;
+            }
+        if(getDistanceToWalk()==0)
+        {
+            setDirection(pickRandomDirection());
+            resetDistanceToWalk(randomDistance());
+        }
+        Direction current = getDirection();
+        if(getWorld()->hasPebbleAt(getX(), getY(), current))
+        {
+            resetDistanceToWalk(0);
+        }
+        else
+        {
+            walk(current);
+        }
+        
+        resetSleepTicks();
     }
     
 }
@@ -352,20 +358,27 @@ void GrassHopper::setBitten(int damage)
         return;
     if(rand()%2 == 1)       //50% chance
     {
-        bite(50);
+        getWorld->bite(50, getX(), getY());
     }
 }
 
 void GrassHopper::jumpRandomly()
 {
-    bool didFindDestination = false;
     int destX;
     int destY;
     
-    int angle = randInt(0, 2);
+    double angle = 2*((double)rand()/double(RAND_MAX));
     int distance = randInt(0, 10);
-        
-    destX = distance*cos(angle);
+    
+    destX = getX()+(int)distance*cos(angle*PI);
+    destY = getY()+(int)distance*sin(angle*PI);
+    
+    if((((destX<0 || destX>= VIEW_WIDTH-1) || (destY<0)||destY>=VIEW_HEIGHT-1)) || getWorld()->hasPebbleAt(destX, destY, none))
+        jumpRandomly();
+    else{
+        moveTo(destX, destY);
+        return;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -391,31 +404,34 @@ void BabyGrassHopper::doSomething()
         return;
     }
     
-    //if(eatFood(true))
-    //{
-    if(rand()%2 == 0){
-        if(getDistanceToWalk()==0)
+    if(eatFood(true))
+        if(rand()%2 == 0)
         {
-            setDirection(pickRandomDirection());
-            resetDistanceToWalk(randomDistance());
+            resetSleepTicks();
+            return;
         }
-        Direction current = getDirection();
-        if(getWorld()->hasPebbleAt(getX(), getY(), current))
-        {
-            resetDistanceToWalk(0);
-        }
-        else
-        {
-            walk(current);
-        }
+    
+    if(getDistanceToWalk()==0)
+    {
+        setDirection(pickRandomDirection());
+        resetDistanceToWalk(randomDistance());
     }
-    //}
+    Direction current = getDirection();
+    if(getWorld()->hasPebbleAt(getX(), getY(), current))
+    {
+        resetDistanceToWalk(0);
+    }
+    else
+    {
+        walk(current);
+    }
+    
     resetSleepTicks();
 }
 
 void BabyGrassHopper::becomeAdult()
 {
-    getWorld()->getObjectsAt(getX(), getY()).push_back(new GrassHopper(getWorld(), getX(), getY()));
+    getWorld()->becomeAdult(getX(), getY());
 }
 
 void BabyGrassHopper::setBitten(int damage)

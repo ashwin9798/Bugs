@@ -19,11 +19,14 @@ class Actor : public GraphObject
 {
 public:
     Actor(StudentWorld* ptr, int imgID, int x, int y, Direction startDirection, int depth):
-        GraphObject(imgID, x, y, startDirection, depth, 0.25),
-        m_alive(true), myWorld(ptr), hasActedDuringTick(false)
+        GraphObject(imgID, x, y, startDirection, depth),
+        m_alive(true), myWorld(ptr), hasActedDuringTick(true)
         {
             setVisible(true);
         }
+    
+    ~Actor(){}
+
     virtual void doSomething() = 0;
     Direction pickRandomDirection();
     StudentWorld* getWorld() const;
@@ -45,6 +48,9 @@ class EnergyHolder : public Actor       //abstract class for all objects that ha
 {
 public:
     EnergyHolder(StudentWorld* ptr, int imgID, int x, int y, int initialHitPoints, bool isFood = false, Direction startDirection = none, int depth = 0): Actor(ptr,imgID, x,y,startDirection, depth), energyUnits(initialHitPoints), isFood(isFood){}
+    
+    ~EnergyHolder(){}
+    
     virtual void doSomething()=0;
     int getEnergyUnits() const;
     void increaseEnergyBy(int units);
@@ -63,6 +69,7 @@ class Deterrent: public Actor      //Pebbles, poison, and water pools
 {
 public:
     Deterrent(StudentWorld* ptr, int imgID, int x, int y, Direction start, int depth): Actor(ptr, imgID, x,y,start,depth){}
+    ~Deterrent(){}
     
     virtual void doSomething() = 0;
 
@@ -74,11 +81,10 @@ class Insect : public EnergyHolder     //all insects have hit points
 public:
     Insect(StudentWorld* ptr, int imgID, int x, int y,  int initialHitPoints, Direction startDirection = none, int depth = 0): EnergyHolder(ptr, imgID, x, y, initialHitPoints, false, startDirection, depth), isStunned(false), isBitten(false), m_sleepTicks(0){};
     virtual void doSomething() = 0;
+    ~Insect(){}
 //    virtual void setPoisoned();
     virtual void setBitten(int damage)=0;
     virtual int howMuchFoodHere();
-    
-    void bite(int strength);    //all insects bite the same way, with differing strengths
     
     bool checkIfStunnedOrSleeping();
     void decreaseSleepTicks();

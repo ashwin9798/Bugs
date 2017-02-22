@@ -19,7 +19,14 @@
 using namespace std;
 
 StudentWorld::StudentWorld(string assetDir): GameWorld(assetDir), m_ticks(0), m_numberOfAnthills(0)
-{}
+{
+    for(int i=0; i<64; i++){
+        for(int j=0; j<64; j++)
+        {
+            m_container[i][j].front()=nullptr;
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Pure Virtual Functions
@@ -71,6 +78,7 @@ int StudentWorld::init()
 int StudentWorld::move()
 {
     updateTicks(); //increments ticks by one and also sets each actor's didAct variable to false for the new tick
+    displayGameText();
     
     for(int i=0; i<64; i++)
     {
@@ -93,13 +101,17 @@ int StudentWorld::move()
                         Actor* temp = q;
                         m_container[newX][newY].push_back(temp);
                         temp->setActed(true);
-                        m_container[i][j].erase(it);
+                        list<Actor*>::iterator b = it;
+                        it = m_container[i][j].erase(b);
+                        it--;
                     }
                 }
                 else if(!q->isAlive())
                 {
                     q->setVisible(false);
-                    m_container[i][j].erase(it);
+                    list<Actor*>::iterator b = it;
+                    it = m_container[i][j].erase(b);
+                    it--;
                 }
                 it++;
             }
@@ -118,7 +130,8 @@ void StudentWorld::cleanUp()
             it = m_container[i][j].begin();
             while(it!=m_container[i][j].end())
             {
-                m_container[i][j].erase(it);
+                it = m_container[i][j].erase(it);
+                it--;
                 it++;
             }
         }
@@ -130,6 +143,29 @@ StudentWorld::~StudentWorld()
     cleanUp();
 }
 
+void StudentWorld::bite(int strength, int x, int y)     //the strength of each insect's bite is different
+{
+    int countInsects =0;
+    
+    vector<Actor*> insectsInSameSquare;
+    list <Actor*>::iterator it=m_container[x][y].begin();
+    
+    while(it!=m_container[x][y].end())
+    {
+        Actor* q = *it;
+        if(q != nullptr)
+            if(typeid(*q) == typeid(Insect))
+                insectsInSameSquare.push_back(*it);
+        it++;
+    }
+    if(countInsects>0)
+    {
+        Actor* InsectToBite = insectsInSameSquare[randInt(0, (insectsInSameSquare.size())-1)];
+        Insect* q = dynamic_cast<Insect*>(InsectToBite);
+        q->setBitten(strength);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Container functions (list)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,6 +173,11 @@ StudentWorld::~StudentWorld()
 list<Actor*> StudentWorld::getObjectsAt(int x, int y)
 {
     return m_container[x][y];
+}
+
+void StudentWorld::becomeAdult(int x, int y)
+{
+    m_container[x][y].push_back(new GrassHopper(this, x, y));
 }
 
 void StudentWorld::removeObjectFromSimulation(Actor *object, int x, int y)
@@ -205,13 +246,18 @@ int StudentWorld::consumableFood(int x, int y, int units)
         if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
         {
             if((*it)->howMuchFoodHere() >= units)
+            {
+                Food* q = dynamic_cast<Food*>(*it);
+                q->decreaseEnergyBy(units);
                 return units;
+            }
             else
             {
                 (*it)->setDead();   //all the food in this square was eaten
                 return (*it)->howMuchFoodHere();
             }
         }
+        it++;
     }
     return 0;
 }
@@ -229,7 +275,6 @@ int StudentWorld::totalFood(int x, int y)
         it++;
     }
     return 0;
-
 }
 
 Actor* StudentWorld::getFoodObject(int x, int y) //returns the actor object that the existing food object(if it exists) is derived from
@@ -253,8 +298,8 @@ void StudentWorld::addFoodToSquare(int x, int y)
     if(getFoodObject(x, y) == nullptr)          //if there is no food object at this square
         m_container[x][y].push_back(new Food(this,x, y, 100));
     else{
-        m_container[x][y].push_back(new Food(this,x, y, 100+foodAlreadyThere));
         removeObjectFromSimulation(getFoodObject(x, y), x, y);
+        m_container[x][y].push_back(new Food(this,x, y, 100+foodAlreadyThere));
     }
 }
 
@@ -282,9 +327,9 @@ void StudentWorld::updateTicks()
     m_ticks++;
 }
 
-//int StudentWorld::getWinningAntNumber()
-//{
-//    int maximum = 0;
+int StudentWorld::getWinningAntNumber()
+{
+    int maximum = 0;
 //    for(int i=0; i<m_numberOfAnthills; i++)
 //    {
 //        if(m_anthill[i]->getNumberOfAnts() > m_anthill[maximum]->getNumberOfAnts())
@@ -292,8 +337,8 @@ void StudentWorld::updateTicks()
 //            maximum = i;
 //        }
 //    }
-//    return maximum;
-//}
+    return maximum;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Field File Functions
@@ -368,73 +413,72 @@ bool StudentWorld::loadFieldFile()
                 case Field::FieldItem::rock:
                     m_container[i][j].push_back(new Pebble(this,i,j));
                     break;
-            
             }
         }
     }
     return true;
 }
 
-//
-////void StudentWorld::displayGameText()
-////{
-////    int ticks = getCurrentTicks();
-////    
-////    int antsAnthill0 = -1, antsAnthill1 = -1, antsAnthill2 = -1, antsAnthill3 = -1;
-////    
-////    if(m_anthill[0]!=nullptr)
-////        antsAnthill0 = m_anthill[0]->getNumberOfAnts();
-////    if(m_anthill[1]!=nullptr)
-////        antsAnthill1 = m_anthill[1]->getNumberOfAnts();
-////    if(m_anthill[2]!=nullptr)
-////        antsAnthill2 = m_anthill[2]->getNumberOfAnts();
-////    if(m_anthill[3]!=nullptr)
-////        antsAnthill3 = m_anthill[3]->getNumberOfAnts();
-////    int winningAntNumber = getWinningAntNumber();
-////    
-////    string s = formatGameText(ticks, antsAnthill0, antsAnthill1, antsAnthill2, antsAnthill3, winningAntNumber);
-////    
-////}
-//
-//
-//std::string StudentWorld::formatGameText(int ticks, int antsAnt0, int antsAnt1, int antsAnt2, int antsAnt3, int winningAntNumber)
-//{
-//    ostringstream oss;
-//    oss << "Ticks:" << setw(5) << ticks << " -  ";
-//    oss.fill('0');
-//    
-//    for(int i=0; i<4; i++)
-//    {
-//        switch(i){
-//            case 0:
-//                if(antsAnt0 != -1 && winningAntNumber ==0)
-//                    oss << m_anthill[0]->getColonyName() << "*: " << setw(2) << antsAnt0 << "  ";
-//                else if(antsAnt0!=-1)
-//                    oss << m_anthill[0]->getColonyName() << ": " << setw(2) << antsAnt0 << "  ";
-//                break;
-//            case 1:
-//                if(antsAnt1 != -1 && winningAntNumber ==1)
-//                    oss << m_anthill[1]->getColonyName() << "*: " << setw(2) << antsAnt1 << "  ";
-//                else if(antsAnt1!=-1)
-//                    oss << m_anthill[1]->getColonyName() << ": " << setw(2) << antsAnt1 << "  ";
-//                break;
-//            case 2:
-//                if(antsAnt2 != -1 && winningAntNumber ==2)
-//                    oss << m_anthill[2]->getColonyName() << "*: " << setw(2) << antsAnt2 << "  ";
-//                else if(antsAnt2!=-1)
-//                    oss << m_anthill[2]->getColonyName() << ": " << setw(2) << antsAnt2 << "  ";
-//                break;
-//            case 3:
-//                if(antsAnt3 != -1 && winningAntNumber ==3)
-//                    oss << m_anthill[3]->getColonyName() << "*: " << setw(2) << antsAnt3;
-//                else if(antsAnt3!=-1)
-//                    oss << m_anthill[3]->getColonyName() << ": " << setw(2) << antsAnt3;
-//                
-//                break;
-//        }
-//    }
-//    return oss.str();
-//}
+
+void StudentWorld::displayGameText()
+{
+    int ticks = getCurrentTicks();
+    
+    int antsAnthill0 = -1, antsAnthill1 = -1, antsAnthill2 = -1, antsAnthill3 = -1;
+    
+    if(m_anthill[0]!=nullptr)
+        antsAnthill0 = m_anthill[0]->getNumberOfAnts();
+    if(m_anthill[1]!=nullptr)
+        antsAnthill1 = m_anthill[1]->getNumberOfAnts();
+    if(m_anthill[2]!=nullptr)
+        antsAnthill2 = m_anthill[2]->getNumberOfAnts();
+    if(m_anthill[3]!=nullptr)
+        antsAnthill3 = m_anthill[3]->getNumberOfAnts();
+    int winningAntNumber = getWinningAntNumber();
+    
+    string s = formatGameText(ticks, antsAnthill0, antsAnthill1, antsAnthill2, antsAnthill3, winningAntNumber);
+    setGameStatText(s);
+}
+
+
+std::string StudentWorld::formatGameText(int ticks, int antsAnt0, int antsAnt1, int antsAnt2, int antsAnt3, int winningAntNumber)
+{
+    ostringstream oss;
+    oss << "Ticks:" << setw(5) << ticks << " -  ";
+    oss.fill('0');
+    
+    for(int i=0; i<4; i++)
+    {
+        switch(i){
+            case 0:
+                if(antsAnt0 != -1 && winningAntNumber ==0)
+                    oss << m_anthill[0]->getColonyName() << "*: " << setw(2) << antsAnt0 << "  ";
+                else if(antsAnt0!=-1)
+                    oss << m_anthill[0]->getColonyName() << ": " << setw(2) << antsAnt0 << "  ";
+                break;
+            case 1:
+                if(antsAnt1 != -1 && winningAntNumber ==1)
+                    oss << m_anthill[1]->getColonyName() << "*: " << setw(2) << antsAnt1 << "  ";
+                else if(antsAnt1!=-1)
+                    oss << m_anthill[1]->getColonyName() << ": " << setw(2) << antsAnt1 << "  ";
+                break;
+            case 2:
+                if(antsAnt2 != -1 && winningAntNumber ==2)
+                    oss << m_anthill[2]->getColonyName() << "*: " << setw(2) << antsAnt2 << "  ";
+                else if(antsAnt2!=-1)
+                    oss << m_anthill[2]->getColonyName() << ": " << setw(2) << antsAnt2 << "  ";
+                break;
+            case 3:
+                if(antsAnt3 != -1 && winningAntNumber ==3)
+                    oss << m_anthill[3]->getColonyName() << "*: " << setw(2) << antsAnt3;
+                else if(antsAnt3!=-1)
+                    oss << m_anthill[3]->getColonyName() << ": " << setw(2) << antsAnt3;
+                
+                break;
+        }
+    }
+    return oss.str();
+}
 
 
 GameWorld* createStudentWorld(string assetDir)

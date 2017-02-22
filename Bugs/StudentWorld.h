@@ -44,11 +44,13 @@ public:
     Actor* getFoodObject(int x, int y);
     void addFoodToSquare(int x, int y);
 
+    void becomeAdult(int x, int y);
+    void bite(int strength, int x, int y);
     
 private:
     int m_ticks;
     int m_numberOfAnthills;
-
+    Anthill* m_anthill[4];
     list<Actor*> m_container[64][64];
 };
 
