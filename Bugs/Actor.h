@@ -65,14 +65,23 @@ private:
     bool isFood;
 };
 
-class Deterrent: public Actor      //Pebbles, poison, and water pools
+class Deterrent: public Actor      //Poison, and water pools
 {
 public:
     Deterrent(StudentWorld* ptr, int imgID, int x, int y, Direction start, int depth): Actor(ptr, imgID, x,y,start,depth){}
     ~Deterrent(){}
     
     virtual void doSomething() = 0;
+    virtual void harmInsect() = 0;      //each deterrent has its own way of harming an insect
+    
+    virtual int howMuchFoodHere();      //no deterrent holds food
+};
 
+class Pebble : public Actor     //Pebble is unique and is not derived from any class
+{
+public:
+    Pebble(StudentWorld* ptr, int x, int y): Actor(ptr,IID_ROCK,x,y,right,1){}
+    virtual void doSomething();
     virtual int howMuchFoodHere();
 };
 
@@ -84,9 +93,13 @@ public:
     ~Insect(){}
 //    virtual void setPoisoned();
     virtual void setBitten(int damage)=0;
+    
+    virtual void setStunned();
     virtual int howMuchFoodHere();
     
-    bool checkIfStunnedOrSleeping();
+    bool checkIfSleeping();
+    bool checkIfStunned();
+    
     void decreaseSleepTicks();
     void resetSleepTicks();
     
@@ -102,6 +115,26 @@ private:
 };
 
 //Insects
+
+class Ant : public Insect
+{
+public:
+    //colony number is the anthill index (compiler index)
+    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY):
+    Insect(ptr, imageID, startX, startY,  1500, pickRandomDirection(), 1),
+    m_pointerToMyCompilerObject(whichCompiler),
+    instructionCounter(0){}
+    virtual void doSomething();
+    virtual void setBitten(int damage);
+    bool instructionInterpreter();
+    
+private:
+    Compiler* m_pointerToMyCompilerObject;
+    //food
+    //    bool wasBlocked;
+    int instructionCounter;
+};
+
 
 class GrassHopper : public Insect
 {
@@ -125,25 +158,6 @@ private:
     int distanceToWalk;
 };
 
-class Ant : public Insect
-{
-public:
-    //colony number is the anthill index (compiler index)
-    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY):
-    Insect(ptr, imageID, startX, startY,  1500, pickRandomDirection(), 1),
-    m_pointerToMyCompilerObject(whichCompiler),
-    instructionCounter(0){}
-    virtual void doSomething();
-    virtual void setBitten(int damage);
-    bool instructionInterpreter();
-    
-private:
-    Compiler* m_pointerToMyCompilerObject;
-    //food
-//    bool wasBlocked;
-    int instructionCounter;
-};
-
 class BabyGrassHopper : public GrassHopper
 {
 public:
@@ -155,7 +169,8 @@ private:
 
 };
 
-//Energy Holders
+
+//Other Energy Holders
 
 class Anthill : public EnergyHolder
 {
@@ -194,13 +209,18 @@ public:
 
 //Deterrents
 
-class Pebble : public Deterrent
+class WaterPool : public Deterrent
 {
 public:
-    Pebble(StudentWorld* ptr, int x, int y): Deterrent(ptr,IID_ROCK,x,y,right,1){}
+    WaterPool(StudentWorld* ptr, int x, int y): Deterrent(ptr,IID_WATER_POOL, x, y, right, 2){}
     virtual void doSomething();
+    virtual void harmInsect();
 };
 
+class Poison : public Deterrent
+{
+
+};
 
 
 #endif /* Actor_h */

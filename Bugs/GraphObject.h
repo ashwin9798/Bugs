@@ -26,7 +26,7 @@ public:
         none, up, right, down, left	 // must be in this order
     };
     
-    GraphObject(int imageID, int startX, int startY, Direction dir = right, int depth = 0, double size = 0.33)
+    GraphObject(int imageID, int startX, int startY, Direction dir = right, int depth = 0, double size = 0.25)
     : m_imageID(imageID), m_visible(false), m_x(startX), m_y(startY),
 	   m_destX(startX), m_destY(startY), m_brightness(1.0),
 	   m_animationNumber(0), m_direction(dir), m_depth(depth), m_size(size)

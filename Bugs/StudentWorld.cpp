@@ -143,41 +143,14 @@ StudentWorld::~StudentWorld()
     cleanUp();
 }
 
-void StudentWorld::bite(int strength, int x, int y)     //the strength of each insect's bite is different
-{
-    int countInsects =0;
-    
-    vector<Actor*> insectsInSameSquare;
-    list <Actor*>::iterator it=m_container[x][y].begin();
-    
-    while(it!=m_container[x][y].end())
-    {
-        Actor* q = *it;
-        if(q != nullptr)
-            if(typeid(*q) == typeid(Insect))
-                insectsInSameSquare.push_back(*it);
-        it++;
-    }
-    if(countInsects>0)
-    {
-        Actor* InsectToBite = insectsInSameSquare[randInt(0, (insectsInSameSquare.size())-1)];
-        Insect* q = dynamic_cast<Insect*>(InsectToBite);
-        q->setBitten(strength);
-    }
-}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Container functions (list)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-list<Actor*> StudentWorld::getObjectsAt(int x, int y)
+list<Actor*>& StudentWorld::getObjectsAt(int x, int y)
 {
     return m_container[x][y];
-}
-
-void StudentWorld::becomeAdult(int x, int y)
-{
-    m_container[x][y].push_back(new GrassHopper(this, x, y));
 }
 
 void StudentWorld::removeObjectFromSimulation(Actor *object, int x, int y)
@@ -235,72 +208,6 @@ bool StudentWorld::hasPebbleAt(int x, int y, Actor::Direction curr)
             return true;
     }
     return false;
-}
-
-int StudentWorld::consumableFood(int x, int y, int units)
-{
-    list<Actor*>::iterator it;
-    it = m_container[x][y].begin();
-    while(it != m_container[x][y].end())
-    {
-        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
-        {
-            if((*it)->howMuchFoodHere() >= units)
-            {
-                Food* q = dynamic_cast<Food*>(*it);
-                q->decreaseEnergyBy(units);
-                return units;
-            }
-            else
-            {
-                (*it)->setDead();   //all the food in this square was eaten
-                return (*it)->howMuchFoodHere();
-            }
-        }
-        it++;
-    }
-    return 0;
-}
-
-int StudentWorld::totalFood(int x, int y)
-{
-    list<Actor*>::iterator it;
-    it = m_container[x][y].begin();
-    while(it != m_container[x][y].end())
-    {
-        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
-        {
-            return (*it)->howMuchFoodHere();
-        }
-        it++;
-    }
-    return 0;
-}
-
-Actor* StudentWorld::getFoodObject(int x, int y) //returns the actor object that the existing food object(if it exists) is derived from
-{
-    list<Actor*>::iterator it;
-    it = m_container[x][y].begin();
-    while(it != m_container[x][y].end())
-    {
-        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
-        {
-            return *it;
-        }
-        it++;
-    }
-    return nullptr;
-}
-
-void StudentWorld::addFoodToSquare(int x, int y)
-{
-    int foodAlreadyThere = totalFood(x, y);
-    if(getFoodObject(x, y) == nullptr)          //if there is no food object at this square
-        m_container[x][y].push_back(new Food(this,x, y, 100));
-    else{
-        removeObjectFromSimulation(getFoodObject(x, y), x, y);
-        m_container[x][y].push_back(new Food(this,x, y, 100+foodAlreadyThere));
-    }
 }
 
 int StudentWorld::getCurrentTicks() const
@@ -403,8 +310,10 @@ bool StudentWorld::loadFieldFile()
 //                    addObjectToSimulation(ah3, i, j);
                 case Field::FieldItem::food:
                     m_container[i][j].push_back(new Food(this, i, j));
-//                case Field::FieldItem::water:
-//                    //add to vector
+                    break;
+                case Field::FieldItem::water:
+                    m_container[i][j].push_back(new WaterPool(this, i, j));
+                    break;
 //                case Field::FieldItem::poison:
 //                    //add to vector
                 case Field::FieldItem::grasshopper:
@@ -486,4 +395,186 @@ GameWorld* createStudentWorld(string assetDir)
 	return new StudentWorld(assetDir);
 }
 
-// Students:  Add code to this file (if you wish), StudentWorld.h, Actor.h and Actor.cpp
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Food Container Functions
+//
+//  -> These functions are used by food objects to monitor how much food is at a certain square and return that information to any energy holder (insects). These functions can also be used to change amount of food at any location in the StudentWorld (insects dying, insects consuming food)
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int StudentWorld::consumableFood(int x, int y, int units)
+{
+    list<Actor*>::iterator it;
+    it = m_container[x][y].begin();
+    while(it != m_container[x][y].end())
+    {
+        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
+        {
+            if((*it)->howMuchFoodHere() >= units)
+            {
+                Food* q = dynamic_cast<Food*>(*it);
+                q->decreaseEnergyBy(units);
+                return units;
+            }
+            else
+            {
+                (*it)->setDead();   //all the food in this square was eaten
+                return (*it)->howMuchFoodHere();
+            }
+        }
+        it++;
+    }
+    return 0;
+}
+
+int StudentWorld::totalFood(int x, int y)
+{
+    list<Actor*>::iterator it;
+    it = m_container[x][y].begin();
+    while(it != m_container[x][y].end())
+    {
+        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
+        {
+            return (*it)->howMuchFoodHere();
+        }
+        it++;
+    }
+    return 0;
+}
+
+Actor* StudentWorld::getFoodObject(int x, int y) //returns the actor object that the existing food object(if it exists) is derived from
+{
+    list<Actor*>::iterator it;
+    it = m_container[x][y].begin();
+    while(it != m_container[x][y].end())
+    {
+        if((*it)->howMuchFoodHere() > 0)     //calls the derived class function on each object
+        {
+            return *it;
+        }
+        it++;
+    }
+    return nullptr;
+}
+
+void StudentWorld::addFoodToSquare(int x, int y)
+{
+    int foodAlreadyThere = totalFood(x, y);
+    if(getFoodObject(x, y) == nullptr)          //if there is no food object at this square
+        m_container[x][y].push_back(new Food(this,x, y, 100));
+    else{
+        removeObjectFromSimulation(getFoodObject(x, y), x, y);
+        m_container[x][y].push_back(new Food(this,x, y, 100+foodAlreadyThere));
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Insect Container Functions
+//
+//  -> These functions are used by insects to get information on other objects in the same location and use that information to perform actions such as biting, or maturing into an adult at that location.
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void StudentWorld::bite(int strength, int x, int y, Insect* biter)     //the strength of each insect's bite is different
+{
+    vector<Actor*> insectsInSameSquare;
+    vector<string> typeIDsOfEach;
+    
+    list <Actor*>::iterator it=m_container[x][y].begin();
+    
+    while(it!=m_container[x][y].end())
+    {
+        Actor* q = *it;
+        if(q != nullptr)
+            if(typeid(*q) == typeid(GrassHopper) ||typeid(*q) == typeid(BabyGrassHopper)){   //need to add ant
+                if(typeid(*q) == typeid(BabyGrassHopper)){
+                    typeIDsOfEach.push_back("BabyGrassHopper");
+                    insectsInSameSquare.push_back(*it);
+                }
+                else if(typeid(*q) == typeid(GrassHopper) && dynamic_cast<GrassHopper*>(q)!= dynamic_cast<GrassHopper*>(biter)){
+                    typeIDsOfEach.push_back("GrassHopper");
+                    insectsInSameSquare.push_back(*it);
+                }
+            }
+
+        it++;
+    }
+    if(insectsInSameSquare.size()>0)
+    {
+        int index = randInt(0, (insectsInSameSquare.size())-1);
+        Actor* InsectToBite = insectsInSameSquare[index];
+        
+        if(typeIDsOfEach[index] == "BabyGrassHopper")
+        {
+            BabyGrassHopper* v = dynamic_cast<BabyGrassHopper*>(InsectToBite);
+            v->setBitten(strength);
+        }
+        else if(typeIDsOfEach[index] == "GrassHopper")
+        {
+            GrassHopper* v = dynamic_cast<GrassHopper*>(InsectToBite);
+            v->setBitten(strength);
+        }
+    }
+}
+
+void StudentWorld::becomeAdultGrassHopper(int x, int y)
+{
+    m_container[x][y].push_back(new GrassHopper(this, x, y));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Deterrent Container Functions
+//
+//  -> These functions are used by insects to get information on other objects in the same location and use that information to perform actions such as biting, or maturing into an adult at that location.
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void StudentWorld::stunInsect(int x, int y)
+{
+    int countInsects =0;
+    string typeID = "";
+    
+    vector<Actor*> insectsInSameSquare;
+    vector<string> typeIDsOfEach;
+    
+    list <Actor*>::iterator it=m_container[x][y].begin();
+    
+    while(it!=m_container[x][y].end())
+    {
+        Actor* q = *it;
+        if(q != nullptr)
+        {
+            if(typeid(*q) == typeid(GrassHopper) ||typeid(*q) == typeid(BabyGrassHopper)){   //need to add ant
+                if(typeid(*q) == typeid(BabyGrassHopper))
+                    typeIDsOfEach.push_back("BabyGrassHopper");
+                else if(typeid(*q) == typeid(GrassHopper))
+                    typeIDsOfEach.push_back("GrassHopper");
+                insectsInSameSquare.push_back(*it);
+            }
+        }
+        it++;
+    }
+    if(insectsInSameSquare.size() > 0)
+    {
+        vector<Actor*>::iterator it1 = insectsInSameSquare.begin();
+        vector<string>::iterator it2 = typeIDsOfEach.begin();
+        while(it1!=insectsInSameSquare.end())
+        {
+            if(*it2 == "BabyGrassHopper"){
+                BabyGrassHopper* v = dynamic_cast<BabyGrassHopper*>(*it1);
+                if(!v->checkIfStunned())
+                {
+                    v->setStunned();
+                }
+            }
+            else if(*it2 == "GrassHopper"){
+                GrassHopper* v = dynamic_cast<GrassHopper*>(*it1);
+                if(!v->checkIfStunned())
+                {
+                    v->setStunned();
+                }
+            }
+            it1++;
+            it2++;
+        }
+    }
+}
+
+

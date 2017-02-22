@@ -91,18 +91,19 @@ int Deterrent::howMuchFoodHere()
 //Deterrent Implementations
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Pebble
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Pebble::doSomething()
-{
-    return;
-}
 
     // Water Pool
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WaterPool::doSomething()
+{
+    harmInsect();
+}
 
+void WaterPool::harmInsect()
+{
+    getWorld()->stunInsect(getX(), getY());
+}
 
     // Poison
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,15 +197,18 @@ int Food::howMuchFoodHere()
 /**************************************************************************************************/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Insect::checkIfStunnedOrSleeping()
+bool Insect::checkIfSleeping()
 {
-    if(m_sleepTicks > 0 || isStunned)
-    {
-        m_sleepTicks--;
+    if(m_sleepTicks > 0)
         return true;
-    }
     return false;
 }
+
+bool Insect::checkIfStunned()
+{
+    return isStunned;
+}
+
 void Insect::decreaseSleepTicks()
 {
     m_sleepTicks--;
@@ -250,6 +254,15 @@ bool Insect::isInsectDead()
     }
     return false;
 }
+void Insect::setStunned()
+{
+    if(isStunned)
+        isStunned = false;
+    else{
+        isStunned = true;
+        m_sleepTicks+=2;
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ant Implementation
@@ -279,10 +292,12 @@ void GrassHopper::doSomething()
     
     if(isInsectDead())
         return;
-    if(checkIfStunnedOrSleeping())
+    if(checkIfSleeping()){
+        decreaseSleepTicks();
         return;
+    }
     if(randInt(1, 3)==1)
-        getWorld()->bite(50, getX(), getY());
+        getWorld()->bite(50, getX(), getY(), dynamic_cast<Insect*>(this));
     else
     {
         if(randInt(1,10) == 1)          //1 in 10 chance
@@ -358,7 +373,7 @@ void GrassHopper::setBitten(int damage)
         return;
     if(rand()%2 == 1)       //50% chance
     {
-        getWorld->bite(50, getX(), getY());
+        getWorld()->bite(50, getX(), getY(), dynamic_cast<Insect*>(this));
     }
 }
 
@@ -393,9 +408,10 @@ void BabyGrassHopper::doSomething()
     if(isInsectDead())
         return;
     
-    if(checkIfStunnedOrSleeping())
+    if(checkIfSleeping()){
+        decreaseSleepTicks();
         return;
-    
+    }
     if(getEnergyUnits() >= 1600)
     {
         becomeAdult();
@@ -423,6 +439,8 @@ void BabyGrassHopper::doSomething()
     }
     else
     {
+        if(checkIfStunned())
+            setStunned();       //when the insect moves, it is not stunned
         walk(current);
     }
     
@@ -431,7 +449,7 @@ void BabyGrassHopper::doSomething()
 
 void BabyGrassHopper::becomeAdult()
 {
-    getWorld()->becomeAdult(getX(), getY());
+    getWorld()->becomeAdultGrassHopper(getX(), getY());
 }
 
 void BabyGrassHopper::setBitten(int damage)
@@ -442,4 +460,16 @@ void BabyGrassHopper::setBitten(int damage)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Pebble Implementation
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Pebble::doSomething()
+{
+    return;
+}
+
+int Pebble::howMuchFoodHere()
+{
+    return 0;
+}

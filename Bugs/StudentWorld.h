@@ -32,20 +32,25 @@ public:
     int getWinningAntNumber();
     bool checkForCompilerError(Compiler* c);
     bool loadFieldFile();
-    
-    list<Actor*> getObjectsAt(int x, int y);
+
     void removeObjectFromSimulation(Actor* object, int x, int y);
+    list<Actor*>& getObjectsAt(int x, int y);
     
-//    bool doesBlockInsect(Actor* a, int x, int y, Actor::Direction curr);
     bool hasPebbleAt(int x, int y, Actor::Direction curr);
     int consumableFood(int x, int y, int units);   //returns how much food is in the square that can be eaten by a specific insect (Ants: 100, Grasshoppers: 200)
-    int totalFood(int x, int y);
     
+    //Food
+    int totalFood(int x, int y);
     Actor* getFoodObject(int x, int y);
     void addFoodToSquare(int x, int y);
-
-    void becomeAdult(int x, int y);
-    void bite(int strength, int x, int y);
+    
+    //Insect
+    void becomeAdultGrassHopper(int x, int y);
+    void bite(int strength, int x, int y, Insect* biter);
+    
+    //Deterrents
+    void stunInsect(int x, int y);
+    
     
 private:
     int m_ticks;
