@@ -36,37 +36,31 @@ int StudentWorld::init()
 {
     m_ticks = 0;
     
-    Compiler *compilerForEntrant0 = nullptr, *compilerForEntrant1 = nullptr,
-    *compilerForEntrant2 = nullptr, *compilerForEntrant3 = nullptr;
+    Compiler* compilerForEntrant0 = nullptr;
+    Compiler* compilerForEntrant1 = nullptr;
+    Compiler* compilerForEntrant2 = nullptr;
+    Compiler* compilerForEntrant3 = nullptr;
     std::vector<std::string> fileNames = getFilenamesOfAntPrograms();
-    
+
     if(fileNames.size()>=1){
         compilerForEntrant0 = new Compiler;
         if(!checkForCompilerError(compilerForEntrant0))
             return GWSTATUS_LEVEL_ERROR;
-        else
-            m_anthill[0]->setCompiler(compilerForEntrant0);     //this anthill uses this compiler
     }
     if(fileNames.size()>=2){
         compilerForEntrant1 = new Compiler;
         if(!checkForCompilerError(compilerForEntrant1))
             return GWSTATUS_LEVEL_ERROR;
-        else
-            m_anthill[1]->setCompiler(compilerForEntrant1);
     }
     if(fileNames.size()>=3){
         compilerForEntrant2 = new Compiler;
         if(!checkForCompilerError(compilerForEntrant2))
             return GWSTATUS_LEVEL_ERROR;
-        else
-            m_anthill[2]->setCompiler(compilerForEntrant2);
     }
     if(fileNames.size()==4){
         compilerForEntrant3 = new Compiler;
         if(!checkForCompilerError(compilerForEntrant3))
             return GWSTATUS_LEVEL_ERROR;
-        else
-            m_anthill[3]->setCompiler(compilerForEntrant3);
     }
     
     if(!loadFieldFile(compilerForEntrant0, compilerForEntrant1, compilerForEntrant2, compilerForEntrant3))
@@ -593,9 +587,11 @@ void StudentWorld::harmInsect(int x, int y, bool isPool)
         Actor* q = *it;
         if(q != nullptr)
         {
-            if(typeid(*q) == typeid(BabyGrassHopper)){   //need to add ant
+            if(typeid(*q) == typeid(BabyGrassHopper) || typeid(*q) == typeid(Ant)){   //need to add ant
                 if(typeid(*q) == typeid(BabyGrassHopper))
                     typeIDsOfEach.push_back("BabyGrassHopper");
+                else if(typeid(*q) == typeid(Ant))
+                    typeIDsOfEach.push_back("Ant");
                 insectsInSameSquare.push_back(*it);
             }
         }
@@ -619,6 +615,19 @@ void StudentWorld::harmInsect(int x, int y, bool isPool)
                     v->setPoisoned();
                 }
             }
+            else if(*it2 == "Ant"){
+                Ant* v = dynamic_cast<Ant*>(*it1);
+                if(isPool){
+                    if(!v->checkIfStunned())
+                    {
+                        v->setStunnedState(true);
+                    }
+                }
+                else{
+                    v->setPoisoned();
+                }
+            }
+            
             it1++;
             it2++;
         }
@@ -626,12 +635,12 @@ void StudentWorld::harmInsect(int x, int y, bool isPool)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Energy Holder Container Functions
+// Ant Container Functions
 //
 //  -> Emit a pheromone
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void StudentWorld::emitPheromone(int x, int y, int imageID, int colonyNumber)
+bool StudentWorld::emitOrDetectPheromone(int x, int y, int imageID, int colonyNumber, bool isEmitting)
 {
     bool myPheromoneHere = false;
     list<Actor*>::iterator it;
@@ -643,21 +652,52 @@ void StudentWorld::emitPheromone(int x, int y, int imageID, int colonyNumber)
     {
         if((*it)->howManyPheromonesHere() > 0)     //calls the derived class function on each object
         {
-            q = dynamic_cast<Pheromone*>(*it);
-            
-            if(q->getColonyNumber() == colonyNumber){
-                myPheromoneHere = true;
-                if(q->getEnergyUnits() >= 512)
-                    q->increaseEnergyBy(768 - q->getEnergyUnits());
-                else
-                    q->increaseEnergyBy(256);
+            if(isEmitting){
+                q = dynamic_cast<Pheromone*>(*it);
+                if(q->getColonyNumber() == colonyNumber){
+                    myPheromoneHere = true;
+                    if(q->getEnergyUnits() >= 512)
+                        q->increaseEnergyBy(768 - q->getEnergyUnits());
+                    else
+                        q->increaseEnergyBy(256);
+                }
+            }
+            else
+            {
+                return true;
             }
         }
         it++;
     }
     
-    if(!myPheromoneHere)
+    if(!myPheromoneHere && isEmitting)
     {
         m_container[x][y].push_back(new Pheromone(this, imageID, x, y));
+        return true;
     }
+    return false;
+}
+
+bool StudentWorld::checkDangerousObjects(int x, int y, int colonyNumber, bool onlyCheckInsects)
+{
+    list<Actor*>::iterator it;
+    it = m_container[x][y].begin();
+    
+    while(it != m_container[x][y].end())
+    {
+        if((*it)->isDangerousToAnt(colonyNumber))     //calls the derived class function on each object
+        {
+            if(onlyCheckInsects){
+                Actor* q = *it;
+                if(dynamic_cast<Ant*>(q) != nullptr || dynamic_cast<GrassHopper*>(q) != nullptr)
+                    return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        it++;
+    }
+    return false;
 }

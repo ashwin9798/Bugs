@@ -80,6 +80,10 @@ int Actor::howMuchFoodHere()
 {
     return 0;
 }
+bool Actor::isDangerousToAnt(int colonyNumber)
+{
+    return false;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
@@ -114,6 +118,11 @@ void WaterPool::doSomething()
 void Poison::doSomething()
 {
     harmInsect(false);      //false identifies it as poison
+}
+
+bool Poison::isDangerousToAnt(int colonyNumber)
+{
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -335,6 +344,10 @@ void Ant::doSomething()
         if(checkIfSleeping())
             setStunnedState(false);
     }
+    if(!interpretInstructions()){
+        setDead();
+        return;
+    }
 }
 
 //interpreter
@@ -342,8 +355,9 @@ bool Ant::interpretInstructions()
 {
     Compiler::Command cmd;
     bool doneInterpreting = false;
+    int totalCommandsThisTick = 0;
     
-    for(;;)
+    for(;totalCommandsThisTick<=10;totalCommandsThisTick++)
     {
         if(!m_pointerToMyCompilerObject->getCommand(instructionCounter, cmd)){
             return false;
@@ -358,6 +372,47 @@ bool Ant::interpretInstructions()
                     wasBlocked=false;
                     wasBitten=false;
                 }
+                instructionCounter++;
+                doneInterpreting = true;
+                break;
+            case Compiler::rotateClockwise:
+                switch(getDirection()){
+                    case up:
+                        setDirection(right);
+                        break;
+                    case down:
+                        setDirection(left);
+                        break;
+                    case left:
+                        setDirection(up);
+                        break;
+                    case right:
+                        setDirection(down);
+                        break;
+                    case none:
+                        break;
+                }
+                instructionCounter++;
+                doneInterpreting = true;
+                break;
+            case Compiler::rotateCounterClockwise:
+                switch(getDirection()){
+                    case up:
+                        setDirection(left);
+                        break;
+                    case down:
+                        setDirection(right);
+                        break;
+                    case left:
+                        setDirection(down);
+                        break;
+                    case right:
+                        setDirection(up);
+                        break;
+                    case none:
+                        break;
+                }
+                instructionCounter++;
                 doneInterpreting = true;
                 break;
             case Compiler::eatFood:
@@ -365,13 +420,18 @@ bool Ant::interpretInstructions()
                     increaseEnergyBy(100);
                 else if(storedFood > 0)
                     increaseEnergyBy(storedFood);
-                
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::dropFood:
                 getWorld()->addFoodToSquare(getX(), getY());
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::bite:
                 getWorld()->bite(15, getX(), getY(), static_cast<Insect*>(this));
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::pickupFood:
                 int pickUp;
@@ -380,48 +440,148 @@ bool Ant::interpretInstructions()
                 else
                     pickUp = getWorld()->consumableFood(getX(), getY(), 1800-storedFood);
                 storedFood += pickUp;
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::emitPheromone:
-                getWorld()->emitPheromone(getX(),getY(), colonyNumber+11, colonyNumber);
+                getWorld()->emitOrDetectPheromone(getX(),getY(), colonyNumber+11, colonyNumber, true);
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::faceRandomDirection:
                 setDirection(pickRandomDirection());
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::generateRandomNumber:
+                lastRandomNumberGenerated = randInt(0, stoi(cmd.operand1));
+                instructionCounter++;
+                doneInterpreting = true;
                 break;
             case Compiler::if_command:
-                if(cmd.operand1 == "last_random_number_was_zero")
-                    
-            
+//                i_smell_danger_in_front_of_me,		// 0
+//                i_smell_pheromone_in_front_of_me,	// 1
+//                i_was_bit,							// 2
+//                i_am_carrying_food,					// 3
+//                i_am_hungry,						// 4
+//                i_am_standing_on_my_anthill,		// 5
+//                i_am_standing_on_food,				// 6
+//                i_am_standing_with_an_enemy,		// 7
+//                i_was_blocked_from_moving,			// 8
+//                last_random_number_was_zero			// 9
                 
-//            case invalid:
-//                break;
-//            case label,
-//                goto_command,
-//                if_command,
-//                emitPheromone,
-//                faceRandomDirection,
-//                rotateClockwise,
-//                rotateCounterClockwise,
-
-//                bite,
-//                pickupFood,
-//                dropFood,
-//                eatFood,
-//                generateRandomNumber
+                if(stoi(cmd.operand1) == 0){
+                    switch(getDirection()){
+                        case none:
+                            break;
+                        case up:
+                            if(getWorld()->checkDangerousObjects(getX(), getY()+1, colonyNumber, false))
+                                instructionCounter = stoi(cmd.operand2);
+                            break;
+                        case down:
+                            if(getWorld()->checkDangerousObjects(getX(), getY()-1, colonyNumber, false))
+                                instructionCounter = stoi(cmd.operand2);
+                            break;
+                        case left:
+                            if(getWorld()->checkDangerousObjects(getX()-1, getY(), colonyNumber, false))
+                                instructionCounter = stoi(cmd.operand2);
+                            break;
+                        case right:
+                            if(getWorld()->checkDangerousObjects(getX()+1, getY(), colonyNumber, false))
+                                instructionCounter = stoi(cmd.operand2);
+                            break;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 1){
+                    if(getWorld()->emitOrDetectPheromone(getX(), getY(), colonyNumber+11, colonyNumber, false))
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 2){
+                    if(wasBitten)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 3){
+                    if(storedFood > 0)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 4){
+                    if(getEnergyUnits()<=25)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 5){
+                    if(getX() == birthX && getY() == birthY)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 6){
+                    if(getWorld()->totalFood(getX(), getY()) > 0)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 7){
+                    if(getWorld()->checkDangerousObjects(getX(), getY(), getColonyNumber(), true))
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 8){
+                    if(wasBlocked)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                else if(stoi(cmd.operand1) == 9){
+                    if(lastRandomNumberGenerated==0)
+                        instructionCounter = stoi(cmd.operand2);
+                    else{
+                        instructionCounter++;
+                    }
+                }
+                break;
+                
+            case Compiler::goto_command:
+                instructionCounter = stoi(cmd.operand1);
+                break;
         }
+        if(doneInterpreting)
+            break;
     }
+    return true;
 }
 
 void Ant::setBitten(int damage)
 {
-    return;
-    //ADD MORE
+    decreaseEnergyBy(damage);
+    if(isInsectDead())
+        return;
 }
 
 int Ant::getColonyNumber()
 {
     return colonyNumber;
+}
+bool Ant::isDangerousToAnt(int colonyNumber){
+    if(getColonyNumber() != colonyNumber)
+        return true;
+    return false;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Grasshopper Implementation
@@ -522,6 +682,9 @@ void GrassHopper::decreaseDistanceToWalk()
     distanceToWalk--;
 }
 
+bool GrassHopper::isDangerousToAnt(int colonyNumber){
+    return true;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Baby Grasshopper Implementation

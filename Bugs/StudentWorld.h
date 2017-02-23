@@ -52,7 +52,9 @@ public:
     //Deterrents
     void harmInsect(int x, int y, bool isPool);
     
-    void emitPheromone(int x, int y, int imageID, int colonyNumber);
+    bool emitOrDetectPheromone(int x, int y, int imageID, int colonyNumber, bool isEmitting);
+    bool checkDangerousObjects(int x, int y, int colonyNumber, bool onlyCheckInsects);
+
     
 private:
     int m_ticks;

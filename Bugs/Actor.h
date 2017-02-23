@@ -38,6 +38,7 @@ public:
 
     virtual int howMuchFoodHere();
     virtual int howManyPheromonesHere();
+    virtual bool isDangerousToAnt(int colonyNumber);   //virtual function to identify dangerous objects to an ant of a specified colony number
     
 private:
     StudentWorld* myWorld;
@@ -48,7 +49,7 @@ private:
 class EnergyHolder : public Actor       //abstract class for all objects that have hit points
 {
 public:
-    EnergyHolder(StudentWorld* ptr, int imgID, int x, int y, int initialHitPoints, bool isFood = false, Direction startDirection = none, int depth = 0): Actor(ptr,imgID, x,y,startDirection, depth), energyUnits(initialHitPoints), isFood(isFood){}
+    EnergyHolder(StudentWorld* ptr, int imgID, int x, int y, int initialHitPoints, bool isFood = false, Direction startDirection = none, int depth = 0): Actor(ptr,imgID, x,y,startDirection, depth), energyUnits(initialHitPoints){}
     
     ~EnergyHolder(){}
     
@@ -61,7 +62,6 @@ public:
     
 private:
     int energyUnits;
-    bool isFood;
 };
 
 
@@ -136,11 +136,14 @@ public:
         wasBitten = false;
         wasBlocked = false;
         storedFood = 0;
+        birthX = startX;
+        birthY = startY;
     }
     virtual void doSomething();
     virtual void setBitten(int damage);
     bool interpretInstructions();
     int getColonyNumber();
+    bool isDangerousToAnt(int colonyNumber);
     
 private:
     Compiler* m_pointerToMyCompilerObject;
@@ -150,6 +153,8 @@ private:
     bool wasBlocked;
     int lastRandomNumberGenerated;
     int storedFood;
+    int birthX;
+    int birthY;
 };
 
 
@@ -169,7 +174,7 @@ public:
     int getDistanceToWalk() const;
     void resetDistanceToWalk(int d);
     void decreaseDistanceToWalk();
-    
+    bool isDangerousToAnt(int colonyNumber);
     void jumpRandomly();
     
 private:
@@ -183,6 +188,7 @@ public:
     virtual void doSomething();
     virtual void setBitten(int damage);
     void becomeAdult();
+    
 private:
 
 };
@@ -251,6 +257,7 @@ class Poison : public Deterrent
 public:
     Poison(StudentWorld* ptr, int x, int y): Deterrent(ptr, IID_POISON, x, y, right, 2){}
     virtual void doSomething();
+    virtual bool isDangerousToAnt(int colonyNumber);
 };
 
 

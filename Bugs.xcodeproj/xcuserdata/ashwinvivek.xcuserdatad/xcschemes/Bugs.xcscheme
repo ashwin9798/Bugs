@@ -66,6 +66,10 @@
             argument = "/Users/ashwinvivek/Downloads/Bugs/field.txt"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/ashwinvivek/Downloads/Bugs/USCAnt.bug"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
