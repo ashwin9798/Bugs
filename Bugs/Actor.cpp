@@ -13,7 +13,7 @@
 #include <random>
 #include "Compiler.h"
 #include <cmath>
-
+#include <string>
 const double PI = 4*atan(1.0);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,14 @@ void Actor::setActed(bool afterTick)
     else
         hasActedDuringTick = false;
 }
-
+int Actor::howManyPheromonesHere()
+{
+    return 0;
+}
+int Actor::howMuchFoodHere()
+{
+    return 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
@@ -82,9 +89,9 @@ void Actor::setActed(bool afterTick)
 /**************************************************************************************************/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Deterrent::howMuchFoodHere()
+void Deterrent::harmInsect(bool isStunning)
 {
-    return 0;
+    getWorld()->harmInsect(getX(), getY(), isStunning);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,19 +104,17 @@ int Deterrent::howMuchFoodHere()
 
 void WaterPool::doSomething()
 {
-    harmInsect();
+    harmInsect(true);
 }
 
-void WaterPool::harmInsect()
-{
-    getWorld()->stunInsect(getX(), getY());
-}
 
     // Poison
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+void Poison::doSomething()
+{
+    harmInsect(false);      //false identifies it as poison
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
@@ -131,14 +136,15 @@ void EnergyHolder::decreaseEnergyBy(int units)
 {
     energyUnits -= units;
 }
-bool EnergyHolder::myFoodEaten(int& howMuch, int unitsToConsume)
+int EnergyHolder::myFoodEaten(int unitsToConsume) //returns how much food is to be eaten to the caller, and also decrements the energy units of the food at that position
 {
+    int howMuch = 0;
     if(getWorld()->totalFood(getX(), getY())>0)
     {
         howMuch = getWorld()->consumableFood(getX(), getY(), unitsToConsume);
-        return true;
+        return howMuch;
     }
-    return false;
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +156,21 @@ bool EnergyHolder::myFoodEaten(int& howMuch, int unitsToConsume)
 
 void Anthill::doSomething()
 {
-    return; //change later
+    decreaseEnergyBy(1);
+    if(getEnergyUnits()<=0){
+        setDead();
+        return;
+    }
+    if(myFoodEaten(10000)>0){
+        increaseEnergyBy(myFoodEaten(10000));
+        return;
+    }
+    if(getEnergyUnits()>=2000){
+        getWorld()->giveBirthToAnt(getX(), getY(), m_compiler, myImageID);
+        decreaseEnergyBy(1500);
+        m_numberOfAnts++;
+    }
+    
 }
 
 //Accessors
@@ -171,11 +191,6 @@ void Anthill::setCompiler(Compiler* c)
     m_compiler = c;
 }
 
-int Anthill::howMuchFoodHere()
-{
-    return 0;
-}
-
 
 // Food
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +204,26 @@ int Food::howMuchFoodHere()
     return getEnergyUnits();
 }
 
+
+// Pheromone
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Pheromone::doSomething()
+{
+    decreaseEnergyBy(1);
+    if(getEnergyUnits()==0)
+        setDead();
+}
+
+int Pheromone::getColonyNumber()
+{
+    return m_colonyNumber;
+}
+
+int Pheromone::howManyPheromonesHere()
+{
+    return getEnergyUnits();
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
 
@@ -221,10 +256,9 @@ bool Insect::eatFood(bool isGrasshopper)    //returns true if food was eaten, ot
     else
         unitsToConsume = 100;
     
-    int howMuch = 0;
-    if(myFoodEaten(howMuch, unitsToConsume)) //pass in a locally created variable by reference to see how much was eaten
+    if(myFoodEaten(unitsToConsume) > 0)
     {
-        increaseEnergyBy(howMuch);
+        increaseEnergyBy(myFoodEaten(unitsToConsume));
         return true;
     }
     return false;
@@ -240,10 +274,6 @@ void Insect::resetSleepTicks()
     m_sleepTicks = 2;
 }
 
-int Insect::howMuchFoodHere()
-{
-    return 0;
-}
 bool Insect::isInsectDead()
 {
     if(getEnergyUnits() <= 0)
@@ -254,25 +284,133 @@ bool Insect::isInsectDead()
     }
     return false;
 }
-void Insect::setStunned()
+
+void Insect::setStunnedState(bool state)
 {
-    if(isStunned)
-        isStunned = false;
-    else{
-        isStunned = true;
+    if(state)
         m_sleepTicks+=2;
+    isStunned = state;
+}
+
+void Insect::setPoisoned()
+{
+    decreaseEnergyBy(150);
+    if(isInsectDead())
+        return;
+    //interpret commands
+}
+
+void Insect::walk(Direction curr)
+{
+    switch(curr)
+    {
+        case up:
+            moveTo(getX(), getY()+1);
+            break;
+        case down:
+            moveTo(getX(), getY()-1);
+            break;
+        case left:
+            moveTo(getX()-1, getY());
+            break;
+        case right:
+            moveTo(getX()+1, getY());
+            break;
+        case none:
+            break;
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ant Implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
+void Ant::doSomething()
+{
+    decreaseEnergyBy(1);
+    if(isInsectDead())
+        return;
+    if(checkIfStunned())
+    {
+        decreaseSleepTicks();
+        if(checkIfSleeping())
+            setStunnedState(false);
+    }
+}
 
 //interpreter
-bool Ant::instructionInterpreter()
+bool Ant::interpretInstructions()
 {
-    return true;
+    Compiler::Command cmd;
+    bool doneInterpreting = false;
+    
+    for(;;)
+    {
+        if(!m_pointerToMyCompilerObject->getCommand(instructionCounter, cmd)){
+            return false;
+        }
+        switch(cmd.opcode)
+        {
+            case Compiler::moveForward:
+                if(getWorld()->hasPebbleAt(getX(), getY(), getDirection()))
+                    wasBlocked = true;
+                else{
+                    walk(getDirection());
+                    wasBlocked=false;
+                    wasBitten=false;
+                }
+                doneInterpreting = true;
+                break;
+            case Compiler::eatFood:
+                if(storedFood >= 100)
+                    increaseEnergyBy(100);
+                else if(storedFood > 0)
+                    increaseEnergyBy(storedFood);
+                
+                break;
+            case Compiler::dropFood:
+                getWorld()->addFoodToSquare(getX(), getY());
+                break;
+            case Compiler::bite:
+                getWorld()->bite(15, getX(), getY(), static_cast<Insect*>(this));
+                break;
+            case Compiler::pickupFood:
+                int pickUp;
+                if(storedFood <= 1400)
+                    pickUp = getWorld()->consumableFood(getX(), getY(), 400);
+                else
+                    pickUp = getWorld()->consumableFood(getX(), getY(), 1800-storedFood);
+                storedFood += pickUp;
+                break;
+            case Compiler::emitPheromone:
+                getWorld()->emitPheromone(getX(),getY(), colonyNumber+11, colonyNumber);
+                break;
+            case Compiler::faceRandomDirection:
+                setDirection(pickRandomDirection());
+                break;
+            case Compiler::generateRandomNumber:
+                break;
+            case Compiler::if_command:
+                if(cmd.operand1 == "last_random_number_was_zero")
+                    
+            
+                
+//            case invalid:
+//                break;
+//            case label,
+//                goto_command,
+//                if_command,
+//                emitPheromone,
+//                faceRandomDirection,
+//                rotateClockwise,
+//                rotateCounterClockwise,
+
+//                bite,
+//                pickupFood,
+//                dropFood,
+//                eatFood,
+//                generateRandomNumber
+        }
+    }
 }
 
 void Ant::setBitten(int damage)
@@ -281,6 +419,10 @@ void Ant::setBitten(int damage)
     //ADD MORE
 }
 
+int Ant::getColonyNumber()
+{
+    return colonyNumber;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Grasshopper Implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -297,7 +439,7 @@ void GrassHopper::doSomething()
         return;
     }
     if(randInt(1, 3)==1)
-        getWorld()->bite(50, getX(), getY(), dynamic_cast<Insect*>(this));
+        getWorld()->bite(50, getX(), getY(), static_cast<Insect*>(this));
     else
     {
         if(randInt(1,10) == 1)          //1 in 10 chance
@@ -325,8 +467,8 @@ void GrassHopper::doSomething()
         else
         {
             walk(current);
+            decreaseDistanceToWalk();
         }
-        
         resetSleepTicks();
     }
     
@@ -344,27 +486,6 @@ int GrassHopper::getDistanceToWalk() const
 {
     return distanceToWalk;
 }
-void GrassHopper::walk(Direction curr)
-{
-    switch(curr)
-    {
-        case up:
-            moveTo(getX(), getY()+1);
-            break;
-        case down:
-            moveTo(getX(), getY()-1);
-            break;
-        case left:
-            moveTo(getX()-1, getY());
-            break;
-        case right:
-            moveTo(getX()+1, getY());
-            break;
-        case none:
-            break;
-    }
-    distanceToWalk--;
-}
 
 void GrassHopper::setBitten(int damage)
 {
@@ -373,7 +494,7 @@ void GrassHopper::setBitten(int damage)
         return;
     if(rand()%2 == 1)       //50% chance
     {
-        getWorld()->bite(50, getX(), getY(), dynamic_cast<Insect*>(this));
+        getWorld()->bite(50, getX(), getY(), this);
     }
 }
 
@@ -395,6 +516,12 @@ void GrassHopper::jumpRandomly()
         return;
     }
 }
+
+void GrassHopper::decreaseDistanceToWalk()
+{
+    distanceToWalk--;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Baby Grasshopper Implementation
@@ -440,8 +567,9 @@ void BabyGrassHopper::doSomething()
     else
     {
         if(checkIfStunned())
-            setStunned();       //when the insect moves, it is not stunned
+            setStunnedState(false);       //when the insect moves, it is not stunned
         walk(current);
+        decreaseDistanceToWalk();
     }
     
     resetSleepTicks();
@@ -467,9 +595,4 @@ void BabyGrassHopper::setBitten(int damage)
 void Pebble::doSomething()
 {
     return;
-}
-
-int Pebble::howMuchFoodHere()
-{
-    return 0;
 }

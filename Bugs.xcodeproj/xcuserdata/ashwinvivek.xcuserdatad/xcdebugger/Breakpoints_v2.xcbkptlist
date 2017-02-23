@@ -120,11 +120,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509439870.30967"
+            timestampString = "509570874.857402"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "39"
-            endingLineNumber = "39"
+            startingLineNumber = "72"
+            endingLineNumber = "72"
             landmarkName = "StudentWorld::init()"
             landmarkType = "7">
          </BreakpointContent>
@@ -136,12 +136,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509488090.988874"
+            timestampString = "509570874.857402"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "283"
-            endingLineNumber = "283"
-            landmarkName = "StudentWorld::loadFieldFile()"
+            startingLineNumber = "278"
+            endingLineNumber = "278"
+            landmarkName = "StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -158,22 +158,6 @@
             startingLineNumber = "78"
             endingLineNumber = "78"
             landmarkName = "StudentWorld::move()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "347"
-            endingLineNumber = "347"
-            landmarkName = "GrassHopper::walk(Direction curr)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -280,11 +264,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509517073.194307"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "108"
-            endingLineNumber = "108">
+            startingLineNumber = "109"
+            endingLineNumber = "109">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -358,11 +342,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "423"
-            endingLineNumber = "423"
+            startingLineNumber = "526"
+            endingLineNumber = "526"
             landmarkName = "BabyGrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -374,11 +358,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "424"
-            endingLineNumber = "424"
+            startingLineNumber = "527"
+            endingLineNumber = "527"
             landmarkName = "BabyGrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -390,12 +374,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509529736.550815"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "136"
-            endingLineNumber = "136"
-            landmarkName = "EnergyHolder::myFoodEaten(int&amp; howMuch, int unitsToConsume)"
+            startingLineNumber = "140"
+            endingLineNumber = "140"
+            landmarkName = "EnergyHolder::myFoodEaten(int unitsToConsume)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -406,12 +390,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509529736.550815"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "137"
-            endingLineNumber = "137"
-            landmarkName = "EnergyHolder::myFoodEaten(int&amp; howMuch, int unitsToConsume)"
+            startingLineNumber = "141"
+            endingLineNumber = "141"
+            landmarkName = "EnergyHolder::myFoodEaten(int unitsToConsume)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -422,12 +406,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509529736.550815"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "138"
-            endingLineNumber = "138"
-            landmarkName = "EnergyHolder::myFoodEaten(int&amp; howMuch, int unitsToConsume)"
+            startingLineNumber = "142"
+            endingLineNumber = "142"
+            landmarkName = "EnergyHolder::myFoodEaten(int unitsToConsume)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -438,11 +422,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "408"
-            endingLineNumber = "408"
+            startingLineNumber = "511"
+            endingLineNumber = "511"
             landmarkName = "BabyGrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -454,27 +438,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "349"
-            endingLineNumber = "349"
-            landmarkName = "GrassHopper::walk(Direction curr)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "291"
-            endingLineNumber = "291"
+            startingLineNumber = "409"
+            endingLineNumber = "409"
             landmarkName = "GrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -486,11 +454,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "452"
-            endingLineNumber = "452"
+            startingLineNumber = "556"
+            endingLineNumber = "556"
             landmarkName = "BabyGrassHopper::becomeAdult()"
             landmarkType = "7">
          </BreakpointContent>
@@ -502,11 +470,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "309"
-            endingLineNumber = "309"
+            startingLineNumber = "427"
+            endingLineNumber = "427"
             landmarkName = "GrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -518,11 +486,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "301"
-            endingLineNumber = "301"
+            startingLineNumber = "419"
+            endingLineNumber = "419"
             landmarkName = "GrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -534,11 +502,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "289"
-            endingLineNumber = "289"
+            startingLineNumber = "407"
+            endingLineNumber = "407"
             landmarkName = "GrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -550,11 +518,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "382"
-            endingLineNumber = "382"
+            startingLineNumber = "479"
+            endingLineNumber = "479"
             landmarkName = "GrassHopper::jumpRandomly()"
             landmarkType = "7">
          </BreakpointContent>
@@ -566,11 +534,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509485273.880309"
+            timestampString = "509570628.633254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "300"
-            endingLineNumber = "300"
+            startingLineNumber = "418"
+            endingLineNumber = "418"
             landmarkName = "GrassHopper::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -661,29 +629,13 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Bugs/Actor.cpp"
-            timestampString = "509485393.171635"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "105"
-            endingLineNumber = "105"
-            landmarkName = "WaterPool::harmInsect()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509492295.519392"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "531"
-            endingLineNumber = "531"
-            landmarkName = "StudentWorld::stunInsect(int x, int y)"
+            startingLineNumber = "583"
+            endingLineNumber = "583"
+            landmarkName = "StudentWorld::harmInsect(int x, int y, bool isPool)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -694,11 +646,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/Actor.cpp"
-            timestampString = "509486517.49066"
+            timestampString = "509529736.550815"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "184"
-            endingLineNumber = "184"
+            startingLineNumber = "202"
+            endingLineNumber = "202"
             landmarkName = "Food::doSomething()"
             landmarkType = "7">
          </BreakpointContent>
@@ -710,12 +662,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509488090.988874"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "315"
-            endingLineNumber = "315"
-            landmarkName = "StudentWorld::loadFieldFile()"
+            startingLineNumber = "324"
+            endingLineNumber = "324"
+            landmarkName = "StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -726,12 +678,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509488090.988874"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "311"
-            endingLineNumber = "311"
-            landmarkName = "StudentWorld::loadFieldFile()"
+            startingLineNumber = "319"
+            endingLineNumber = "319"
+            landmarkName = "StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -742,12 +694,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509488090.988874"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "314"
-            endingLineNumber = "314"
-            landmarkName = "StudentWorld::loadFieldFile()"
+            startingLineNumber = "323"
+            endingLineNumber = "323"
+            landmarkName = "StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -758,12 +710,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509492295.519392"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "554"
-            endingLineNumber = "554"
-            landmarkName = "StudentWorld::stunInsect(int x, int y)"
+            startingLineNumber = "604"
+            endingLineNumber = "604"
+            landmarkName = "StudentWorld::harmInsect(int x, int y, bool isPool)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -774,12 +726,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509492295.519392"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "556"
-            endingLineNumber = "556"
-            landmarkName = "StudentWorld::stunInsect(int x, int y)"
+            startingLineNumber = "606"
+            endingLineNumber = "606"
+            landmarkName = "StudentWorld::harmInsect(int x, int y, bool isPool)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -790,12 +742,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509492295.519392"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "567"
-            endingLineNumber = "567"
-            landmarkName = "StudentWorld::stunInsect(int x, int y)"
+            startingLineNumber = "591"
+            endingLineNumber = "591"
+            landmarkName = "StudentWorld::harmInsect(int x, int y, bool isPool)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -806,28 +758,172 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509492295.519392"
+            timestampString = "509571040.804772"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "539"
-            endingLineNumber = "539"
-            landmarkName = "StudentWorld::stunInsect(int x, int y)"
+            startingLineNumber = "613"
+            endingLineNumber = "613"
+            landmarkName = "StudentWorld::harmInsect(int x, int y, bool isPool)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/Actor.h"
+            timestampString = "509529736.550815"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "104"
+            endingLineNumber = "104"
+            landmarkName = "class Insect"
+            landmarkType = "3">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/Actor.cpp"
+            timestampString = "509529736.550815"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "161"
+            endingLineNumber = "161"
+            landmarkName = "Anthill::doSomething()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/StudentWorld.h"
+            timestampString = "509529548.130824"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "48"
+            endingLineNumber = "48"
+            landmarkName = "class StudentWorld"
+            landmarkType = "3">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Bugs/StudentWorld.cpp"
-            timestampString = "509492381.006147"
+            timestampString = "509565594.184189"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "562"
-            endingLineNumber = "562"
-            landmarkName = "StudentWorld::stunInsect(int x, int y)"
+            startingLineNumber = "125"
+            endingLineNumber = "125"
+            landmarkName = "StudentWorld::cleanUp()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/StudentWorld.cpp"
+            timestampString = "509565650.988622"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "133"
+            endingLineNumber = "133"
+            landmarkName = "StudentWorld::cleanUp()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/Actor.cpp"
+            timestampString = "509570628.633254"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "337"
+            endingLineNumber = "337"
+            landmarkName = "Ant::interpretInstructions()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/Actor.cpp"
+            timestampString = "509570628.633254"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "354"
+            endingLineNumber = "354"
+            landmarkName = "Ant::interpretInstructions()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/StudentWorld.cpp"
+            timestampString = "509571040.804772"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "293"
+            endingLineNumber = "293"
+            landmarkName = "StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/StudentWorld.cpp"
+            timestampString = "509570960.52093"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "43"
+            endingLineNumber = "43"
+            landmarkName = "StudentWorld::init()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Bugs/StudentWorld.cpp"
+            timestampString = "509571095.294711"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "42"
+            endingLineNumber = "42"
+            landmarkName = "StudentWorld::init()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

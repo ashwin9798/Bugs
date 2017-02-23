@@ -36,49 +36,49 @@ int StudentWorld::init()
 {
     m_ticks = 0;
     
-    if(!loadFieldFile())
-        return GWSTATUS_LEVEL_ERROR;
-    
-    Compiler *compilerForEntrant0, *compilerForEntrant1,
-    *compilerForEntrant2, *compilerForEntrant3;
-    
+    Compiler *compilerForEntrant0 = nullptr, *compilerForEntrant1 = nullptr,
+    *compilerForEntrant2 = nullptr, *compilerForEntrant3 = nullptr;
     std::vector<std::string> fileNames = getFilenamesOfAntPrograms();
     
-//    if(fileNames.size()>=1){
-//        compilerForEntrant0 = new Compiler;
-//        if(!checkForCompilerError(compilerForEntrant0))
-//            return GWSTATUS_LEVEL_ERROR;
-//        else
-//            m_anthill[0]->setCompiler(compilerForEntrant0);     //this anthill uses this compiler
-//    }
-//    if(fileNames.size()>=2){
-//        compilerForEntrant1 = new Compiler;
-//        if(!checkForCompilerError(compilerForEntrant1))
-//            return GWSTATUS_LEVEL_ERROR;
-//        else
-//            m_anthill[1]->setCompiler(compilerForEntrant1);
-//    }
-//    if(fileNames.size()>=3){
-//        compilerForEntrant2 = new Compiler;
-//        if(!checkForCompilerError(compilerForEntrant2))
-//            return GWSTATUS_LEVEL_ERROR;
-//        else
-//            m_anthill[2]->setCompiler(compilerForEntrant2);
-//    }
-//    if(fileNames.size()==4){
-//        compilerForEntrant3 = new Compiler;
-//        if(!checkForCompilerError(compilerForEntrant3))
-//            return GWSTATUS_LEVEL_ERROR;
-//        else
-//            m_anthill[3]->setCompiler(compilerForEntrant3);
-//    }
+    if(fileNames.size()>=1){
+        compilerForEntrant0 = new Compiler;
+        if(!checkForCompilerError(compilerForEntrant0))
+            return GWSTATUS_LEVEL_ERROR;
+        else
+            m_anthill[0]->setCompiler(compilerForEntrant0);     //this anthill uses this compiler
+    }
+    if(fileNames.size()>=2){
+        compilerForEntrant1 = new Compiler;
+        if(!checkForCompilerError(compilerForEntrant1))
+            return GWSTATUS_LEVEL_ERROR;
+        else
+            m_anthill[1]->setCompiler(compilerForEntrant1);
+    }
+    if(fileNames.size()>=3){
+        compilerForEntrant2 = new Compiler;
+        if(!checkForCompilerError(compilerForEntrant2))
+            return GWSTATUS_LEVEL_ERROR;
+        else
+            m_anthill[2]->setCompiler(compilerForEntrant2);
+    }
+    if(fileNames.size()==4){
+        compilerForEntrant3 = new Compiler;
+        if(!checkForCompilerError(compilerForEntrant3))
+            return GWSTATUS_LEVEL_ERROR;
+        else
+            m_anthill[3]->setCompiler(compilerForEntrant3);
+    }
+    
+    if(!loadFieldFile(compilerForEntrant0, compilerForEntrant1, compilerForEntrant2, compilerForEntrant3))
+        return GWSTATUS_LEVEL_ERROR;
+    
     return GWSTATUS_CONTINUE_GAME;
 }
 
 int StudentWorld::move()
 {
     updateTicks(); //increments ticks by one and also sets each actor's didAct variable to false for the new tick
-    displayGameText();
+//    displayGameText();
     
     for(int i=0; i<64; i++)
     {
@@ -131,12 +131,9 @@ void StudentWorld::cleanUp()
             while(it!=m_container[i][j].end())
             {
                 it = m_container[i][j].erase(it);
-                it--;
-                it++;
             }
         }
     }
-
 }
 StudentWorld::~StudentWorld()
 {
@@ -273,12 +270,10 @@ bool StudentWorld::checkForCompilerError(Compiler* c)
     }
 }
 
-bool StudentWorld::loadFieldFile()
+bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3)
 {
     string fieldFileName = getFieldFilename();
     Field f;
-    
-    Anthill  *ah0, *ah1, *ah2, *ah3;
     
     Field::LoadResult loadedFieldSuccessfully = f.loadField(fieldFileName);
     
@@ -292,33 +287,50 @@ bool StudentWorld::loadFieldFile()
             {
                 case Field::FieldItem::empty:
                     break;
-//                case Field::FieldItem::anthill0:
-//                    m_anthill[0] = new Anthill(nullptr, IID_ANT_TYPE0, i, j);
-//                    ah0 = new Anthill(nullptr, 0, i, j);
-//                    addObjectToSimulation(ah0, i, j);
-//                case Field::FieldItem::anthill1:
-//                    m_anthill[1] = new Anthill(nullptr, IID_ANT_TYPE1, i, j);
-//                    ah1 = new Anthill(nullptr, 0, i, j);
-//                    addObjectToSimulation(ah1, i, j);
-//                case Field::FieldItem::anthill2:
-//                    m_anthill[2] = new Anthill(nullptr, IID_ANT_TYPE2, i, j);
-//                    ah2 = new Anthill(nullptr, 0, i, j);
-//                    addObjectToSimulation(ah2, i, j);
-//                case Field::FieldItem::anthill3:
-//                    m_anthill[3] = new Anthill(nullptr, IID_ANT_TYPE3, i, j);
-//                    ah3 = new Anthill(nullptr, 0, i, j);
-//                    addObjectToSimulation(ah3, i, j);
+                    
+                case Field::FieldItem::anthill0:
+                    if(c0 != nullptr){
+                        m_anthill[0] = new Anthill(this, c0, IID_ANT_TYPE0, i, j);
+                        m_container[i][j].push_back(m_anthill[0]);
+                    }
+                    break;
+                    
+                case Field::FieldItem::anthill1:
+                    if(c1 != nullptr){
+                        m_anthill[1] = new Anthill(this, c1, IID_ANT_TYPE1, i, j);
+                        m_container[i][j].push_back(m_anthill[1]);
+                    }
+                    break;
+                    
+                case Field::FieldItem::anthill2:
+                    if(c2 != nullptr){
+                        m_anthill[2] = new Anthill(this, c2, IID_ANT_TYPE2, i, j);
+                        m_container[i][j].push_back(m_anthill[2]);
+                    }
+                    break;
+                    
+                case Field::FieldItem::anthill3:
+                    if(c3 != nullptr){
+                        m_anthill[3] = new Anthill(this, c3, IID_ANT_TYPE3, i, j);
+                        m_container[i][j].push_back(m_anthill[3]);
+                    }
+                    break;
+                    
                 case Field::FieldItem::food:
                     m_container[i][j].push_back(new Food(this, i, j));
                     break;
+                    
                 case Field::FieldItem::water:
                     m_container[i][j].push_back(new WaterPool(this, i, j));
                     break;
-//                case Field::FieldItem::poison:
-//                    //add to vector
+                    
+                case Field::FieldItem::poison:
+                    m_container[i][j].push_back(new Poison(this, i, j));
+                    
                 case Field::FieldItem::grasshopper:
                     m_container[i][j].push_back(new BabyGrassHopper(this,i,j));
                     break;
+                    
                 case Field::FieldItem::rock:
                     m_container[i][j].push_back(new Pebble(this,i,j));
                     break;
@@ -480,18 +492,49 @@ void StudentWorld::bite(int strength, int x, int y, Insect* biter)     //the str
     
     list <Actor*>::iterator it=m_container[x][y].begin();
     
+    //Identify whether biter is an ant or a grasshopper
+    bool biterIsAnt = false;
+    if(dynamic_cast<Ant*>(biter) != nullptr)
+        biterIsAnt = true;
+    
     while(it!=m_container[x][y].end())
     {
         Actor* q = *it;
         if(q != nullptr)
-            if(typeid(*q) == typeid(GrassHopper) ||typeid(*q) == typeid(BabyGrassHopper)){   //need to add ant
+            if(typeid(*q) == typeid(GrassHopper) || typeid(*q) == typeid(BabyGrassHopper) ||typeid(*q)==typeid(Ant)){   //need to add ant
+                
                 if(typeid(*q) == typeid(BabyGrassHopper)){
                     typeIDsOfEach.push_back("BabyGrassHopper");
                     insectsInSameSquare.push_back(*it);
                 }
-                else if(typeid(*q) == typeid(GrassHopper) && dynamic_cast<GrassHopper*>(q)!= dynamic_cast<GrassHopper*>(biter)){
+                else if(typeid(*q) == typeid(GrassHopper)){
+                    if(!biterIsAnt)
+                    {
+                        if(dynamic_cast<GrassHopper*>(q)!= dynamic_cast<GrassHopper*>(biter)){
+                            typeIDsOfEach.push_back("GrassHopper");
+                            insectsInSameSquare.push_back(*it);
+                        }
+                    }
+                    else
+                    {
                     typeIDsOfEach.push_back("GrassHopper");
                     insectsInSameSquare.push_back(*it);
+                    }
+                }
+                else if(typeid(*q) == typeid(Ant)){
+                    if(biterIsAnt){
+                        Ant* beingBitten = dynamic_cast<Ant*>(q);
+                        Ant* biting = dynamic_cast<Ant*>(biter);
+                        if((beingBitten != biting) && (beingBitten->getColonyNumber() != biting->getColonyNumber())){
+                            typeIDsOfEach.push_back("Ant");
+                            insectsInSameSquare.push_back(*it);
+                        }
+                    }
+                    else
+                    {
+                        typeIDsOfEach.push_back("Ant");
+                        insectsInSameSquare.push_back(*it);
+                    }
                 }
             }
 
@@ -512,6 +555,11 @@ void StudentWorld::bite(int strength, int x, int y, Insect* biter)     //the str
             GrassHopper* v = dynamic_cast<GrassHopper*>(InsectToBite);
             v->setBitten(strength);
         }
+        else if(typeIDsOfEach[index] == "Ant")
+        {
+            Ant* v = dynamic_cast<Ant*>(InsectToBite);
+            v->setBitten(strength);
+        }
     }
 }
 
@@ -520,13 +568,17 @@ void StudentWorld::becomeAdultGrassHopper(int x, int y)
     m_container[x][y].push_back(new GrassHopper(this, x, y));
 }
 
+void StudentWorld::giveBirthToAnt(int x, int y, Compiler* c, int imageID)
+{
+    m_container[x][y].push_back(new Ant(this, c, imageID, x, y));
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Deterrent Container Functions
 //
 //  -> These functions are used by insects to get information on other objects in the same location and use that information to perform actions such as biting, or maturing into an adult at that location.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void StudentWorld::stunInsect(int x, int y)
+void StudentWorld::harmInsect(int x, int y, bool isPool)
 {
     int countInsects =0;
     string typeID = "";
@@ -541,11 +593,9 @@ void StudentWorld::stunInsect(int x, int y)
         Actor* q = *it;
         if(q != nullptr)
         {
-            if(typeid(*q) == typeid(GrassHopper) ||typeid(*q) == typeid(BabyGrassHopper)){   //need to add ant
+            if(typeid(*q) == typeid(BabyGrassHopper)){   //need to add ant
                 if(typeid(*q) == typeid(BabyGrassHopper))
                     typeIDsOfEach.push_back("BabyGrassHopper");
-                else if(typeid(*q) == typeid(GrassHopper))
-                    typeIDsOfEach.push_back("GrassHopper");
                 insectsInSameSquare.push_back(*it);
             }
         }
@@ -559,16 +609,14 @@ void StudentWorld::stunInsect(int x, int y)
         {
             if(*it2 == "BabyGrassHopper"){
                 BabyGrassHopper* v = dynamic_cast<BabyGrassHopper*>(*it1);
-                if(!v->checkIfStunned())
-                {
-                    v->setStunned();
+                if(isPool){
+                    if(!v->checkIfStunned())
+                    {
+                        v->setStunnedState(true);
+                    }
                 }
-            }
-            else if(*it2 == "GrassHopper"){
-                GrassHopper* v = dynamic_cast<GrassHopper*>(*it1);
-                if(!v->checkIfStunned())
-                {
-                    v->setStunned();
+                else{
+                    v->setPoisoned();
                 }
             }
             it1++;
@@ -577,4 +625,39 @@ void StudentWorld::stunInsect(int x, int y)
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Energy Holder Container Functions
+//
+//  -> Emit a pheromone
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void StudentWorld::emitPheromone(int x, int y, int imageID, int colonyNumber)
+{
+    bool myPheromoneHere = false;
+    list<Actor*>::iterator it;
+    it = m_container[x][y].begin();
+    
+    Pheromone* q;
+    
+    while(it != m_container[x][y].end())
+    {
+        if((*it)->howManyPheromonesHere() > 0)     //calls the derived class function on each object
+        {
+            q = dynamic_cast<Pheromone*>(*it);
+            
+            if(q->getColonyNumber() == colonyNumber){
+                myPheromoneHere = true;
+                if(q->getEnergyUnits() >= 512)
+                    q->increaseEnergyBy(768 - q->getEnergyUnits());
+                else
+                    q->increaseEnergyBy(256);
+            }
+        }
+        it++;
+    }
+    
+    if(!myPheromoneHere)
+    {
+        m_container[x][y].push_back(new Pheromone(this, imageID, x, y));
+    }
+}

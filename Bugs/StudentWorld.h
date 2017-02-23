@@ -31,7 +31,7 @@ public:
     void updateTicks();
     int getWinningAntNumber();
     bool checkForCompilerError(Compiler* c);
-    bool loadFieldFile();
+    bool loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3);
 
     void removeObjectFromSimulation(Actor* object, int x, int y);
     list<Actor*>& getObjectsAt(int x, int y);
@@ -47,10 +47,12 @@ public:
     //Insect
     void becomeAdultGrassHopper(int x, int y);
     void bite(int strength, int x, int y, Insect* biter);
+    void giveBirthToAnt(int x, int y, Compiler* c, int imageID);
     
     //Deterrents
-    void stunInsect(int x, int y);
+    void harmInsect(int x, int y, bool isPool);
     
+    void emitPheromone(int x, int y, int imageID, int colonyNumber);
     
 private:
     int m_ticks;
