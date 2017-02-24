@@ -14,6 +14,7 @@
 #include "Compiler.h"
 
 class StudentWorld;
+class Anthill;
 
 class Actor : public GraphObject
 {
@@ -127,7 +128,7 @@ class Ant : public Insect
 {
 public:
     //colony number is the anthill index (compiler index)
-    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY):
+    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY, Anthill* hillPtr):
     Insect(ptr, imageID, startX, startY,  1500, pickRandomDirection(), 1),
     m_pointerToMyCompilerObject(whichCompiler),
     instructionCounter(0)
@@ -136,11 +137,14 @@ public:
         wasBitten = false;
         wasBlocked = false;
         storedFood = 0;
+        lastRandomNumberGenerated = 0;
         birthX = startX;
         birthY = startY;
+        m_anthill = hillPtr;
     }
     virtual void doSomething();
     virtual void setBitten(int damage);
+    virtual void setPoisoned();
     bool interpretInstructions();
     int getColonyNumber();
     bool isDangerousToAnt(int colonyNumber);
@@ -155,6 +159,7 @@ private:
     int storedFood;
     int birthX;
     int birthY;
+    Anthill* m_anthill;
 };
 
 
@@ -203,7 +208,7 @@ public:
     Anthill(StudentWorld* ptr, Compiler* whichCompiler, int imageIDForAnts, int xPos, int yPos):
     EnergyHolder(ptr, IID_ANT_HILL, xPos, yPos, 8999, false, right, 2),
     m_compiler(whichCompiler),
-    m_numberOfAnts(5),
+    m_numberOfAnts(0),
     myImageID(imageIDForAnts)
     {
         m_colonyName = m_compiler->getColonyName();
@@ -216,6 +221,7 @@ public:
     
     //Mutators
     void setCompiler(Compiler* c);
+    void antDied();
     
 private:
     std::string m_colonyName;

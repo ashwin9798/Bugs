@@ -44,22 +44,22 @@ int StudentWorld::init()
 
     if(fileNames.size()>=1){
         compilerForEntrant0 = new Compiler;
-        if(!checkForCompilerError(compilerForEntrant0))
+        if(!checkForCompilerError(compilerForEntrant0,0))
             return GWSTATUS_LEVEL_ERROR;
     }
     if(fileNames.size()>=2){
         compilerForEntrant1 = new Compiler;
-        if(!checkForCompilerError(compilerForEntrant1))
+        if(!checkForCompilerError(compilerForEntrant1,1))
             return GWSTATUS_LEVEL_ERROR;
     }
     if(fileNames.size()>=3){
         compilerForEntrant2 = new Compiler;
-        if(!checkForCompilerError(compilerForEntrant2))
+        if(!checkForCompilerError(compilerForEntrant2,2))
             return GWSTATUS_LEVEL_ERROR;
     }
     if(fileNames.size()==4){
         compilerForEntrant3 = new Compiler;
-        if(!checkForCompilerError(compilerForEntrant3))
+        if(!checkForCompilerError(compilerForEntrant3,3))
             return GWSTATUS_LEVEL_ERROR;
     }
     
@@ -71,8 +71,7 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-    updateTicks(); //increments ticks by one and also sets each actor's didAct variable to false for the new tick
-//    displayGameText();
+    displayGameText();
     
     for(int i=0; i<64; i++)
     {
@@ -103,12 +102,20 @@ int StudentWorld::move()
                 else if(!q->isAlive())
                 {
                     q->setVisible(false);
-                    list<Actor*>::iterator b = it;
-                    it = m_container[i][j].erase(b);
+                    delete(*it);
+                    it = m_container[i][j].erase(it);
                     it--;
                 }
                 it++;
             }
+        }
+    }
+    updateTicks(); //increments ticks by one and also sets each actor's didAct variable to false for the new tick
+    if(m_ticks == 1000){
+        if(getWinningAntNumber() == -1)
+            return GWSTATUS_NO_WINNER;
+        else{
+            setWinner(m_anthill[getWinningAntNumber()]->getColonyName());
         }
     }
     return GWSTATUS_CONTINUE_GAME;
@@ -122,8 +129,10 @@ void StudentWorld::cleanUp()
         {
             list<Actor*>::iterator it;
             it = m_container[i][j].begin();
+
             while(it!=m_container[i][j].end())
             {
+                delete(*it);
                 it = m_container[i][j].erase(it);
             }
         }
@@ -227,14 +236,28 @@ void StudentWorld::updateTicks()
 
 int StudentWorld::getWinningAntNumber()
 {
-    int maximum = 0;
-//    for(int i=0; i<m_numberOfAnthills; i++)
-//    {
-//        if(m_anthill[i]->getNumberOfAnts() > m_anthill[maximum]->getNumberOfAnts())
-//        {
-//            maximum = i;
-//        }
-//    }
+    vector<int> livingAnthills;
+    for(int i=0; i<4; i++){
+        if(m_anthill[i] != nullptr)
+            livingAnthills.push_back(i);
+    }
+    bool noWinner = true;
+    
+    int maximum = livingAnthills[0];
+    
+    for(int i=0; i<livingAnthills.size(); i++)
+    {
+        if(m_anthill[livingAnthills[i]]->getNumberOfAnts() > m_anthill[maximum]->getNumberOfAnts())
+        {
+            if(m_anthill[livingAnthills[i]]->getNumberOfAnts() > 5)
+            {
+                maximum = livingAnthills[i];
+                noWinner = false;
+            }
+        }
+    }
+    if(noWinner)
+        return -1;
     return maximum;
 }
 
@@ -242,18 +265,18 @@ int StudentWorld::getWinningAntNumber()
 //Field File Functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool StudentWorld::checkForCompilerError(Compiler* c)
+bool StudentWorld::checkForCompilerError(Compiler* c, int n)
 {
     std::vector<std::string> fileNames = getFilenamesOfAntPrograms();
     std::string error;
     
-    if (!c->compile(fileNames[0], error) )
+    if (!c->compile(fileNames[n], error) )
     {
         // entrant 0’s source code had a syntax error!
         
         // send this error to our framework to warn the user.
         // do it JUST like this!
-        setError(fileNames[0] + " " + error);
+        setError(fileNames[n] + " " + error);
         // return an error to tell our simulation framework
         // that something went wrong, and it’ll inform the user
         return false;
@@ -286,6 +309,7 @@ bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compi
                     if(c0 != nullptr){
                         m_anthill[0] = new Anthill(this, c0, IID_ANT_TYPE0, i, j);
                         m_container[i][j].push_back(m_anthill[0]);
+                        m_numberOfAnthills++;
                     }
                     break;
                     
@@ -293,6 +317,7 @@ bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compi
                     if(c1 != nullptr){
                         m_anthill[1] = new Anthill(this, c1, IID_ANT_TYPE1, i, j);
                         m_container[i][j].push_back(m_anthill[1]);
+                        m_numberOfAnthills++;
                     }
                     break;
                     
@@ -300,6 +325,7 @@ bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compi
                     if(c2 != nullptr){
                         m_anthill[2] = new Anthill(this, c2, IID_ANT_TYPE2, i, j);
                         m_container[i][j].push_back(m_anthill[2]);
+                        m_numberOfAnthills++;
                     }
                     break;
                     
@@ -307,6 +333,7 @@ bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compi
                     if(c3 != nullptr){
                         m_anthill[3] = new Anthill(this, c3, IID_ANT_TYPE3, i, j);
                         m_container[i][j].push_back(m_anthill[3]);
+                        m_numberOfAnthills++;
                     }
                     break;
                     
@@ -320,6 +347,7 @@ bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compi
                     
                 case Field::FieldItem::poison:
                     m_container[i][j].push_back(new Poison(this, i, j));
+                    break;
                     
                 case Field::FieldItem::grasshopper:
                     m_container[i][j].push_back(new BabyGrassHopper(this,i,j));
@@ -462,14 +490,14 @@ Actor* StudentWorld::getFoodObject(int x, int y) //returns the actor object that
     return nullptr;
 }
 
-void StudentWorld::addFoodToSquare(int x, int y)
+void StudentWorld::addFoodToSquare(int x, int y, int amount)
 {
     int foodAlreadyThere = totalFood(x, y);
     if(getFoodObject(x, y) == nullptr)          //if there is no food object at this square
-        m_container[x][y].push_back(new Food(this,x, y, 100));
+        m_container[x][y].push_back(new Food(this,x, y, amount));
     else{
         removeObjectFromSimulation(getFoodObject(x, y), x, y);
-        m_container[x][y].push_back(new Food(this,x, y, 100+foodAlreadyThere));
+        m_container[x][y].push_back(new Food(this,x, y, amount+foodAlreadyThere));
     }
 }
 
@@ -562,9 +590,9 @@ void StudentWorld::becomeAdultGrassHopper(int x, int y)
     m_container[x][y].push_back(new GrassHopper(this, x, y));
 }
 
-void StudentWorld::giveBirthToAnt(int x, int y, Compiler* c, int imageID)
+void StudentWorld::giveBirthToAnt(int x, int y, Compiler* c, int imageID, Anthill* hillPtr)
 {
-    m_container[x][y].push_back(new Ant(this, c, imageID, x, y));
+    m_container[x][y].push_back(new Ant(this, c, imageID, x, y, hillPtr));
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Deterrent Container Functions
@@ -700,4 +728,10 @@ bool StudentWorld::checkDangerousObjects(int x, int y, int colonyNumber, bool on
         it++;
     }
     return false;
+}
+
+void StudentWorld::deleteAnthill(int colonyNumber)
+{
+    m_anthill[colonyNumber] = nullptr;
+    m_numberOfAnthills--;
 }

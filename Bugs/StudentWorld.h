@@ -30,7 +30,7 @@ public:
     int getCurrentTicks() const;
     void updateTicks();
     int getWinningAntNumber();
-    bool checkForCompilerError(Compiler* c);
+    bool checkForCompilerError(Compiler* c, int n);
     bool loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3);
 
     void removeObjectFromSimulation(Actor* object, int x, int y);
@@ -42,18 +42,19 @@ public:
     //Food
     int totalFood(int x, int y);
     Actor* getFoodObject(int x, int y);
-    void addFoodToSquare(int x, int y);
+    void addFoodToSquare(int x, int y, int amount);
     
     //Insect
     void becomeAdultGrassHopper(int x, int y);
     void bite(int strength, int x, int y, Insect* biter);
-    void giveBirthToAnt(int x, int y, Compiler* c, int imageID);
+    void giveBirthToAnt(int x, int y, Compiler* c, int imageID, Anthill* hillPtr);
     
     //Deterrents
     void harmInsect(int x, int y, bool isPool);
     
     bool emitOrDetectPheromone(int x, int y, int imageID, int colonyNumber, bool isEmitting);
     bool checkDangerousObjects(int x, int y, int colonyNumber, bool onlyCheckInsects);
+    void deleteAnthill(int colonyNumber);
 
     
 private:

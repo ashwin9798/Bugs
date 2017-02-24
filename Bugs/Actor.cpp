@@ -168,6 +168,7 @@ void Anthill::doSomething()
     decreaseEnergyBy(1);
     if(getEnergyUnits()<=0){
         setDead();
+        getWorld()->deleteAnthill(myImageID);
         return;
     }
     if(myFoodEaten(10000)>0){
@@ -175,7 +176,7 @@ void Anthill::doSomething()
         return;
     }
     if(getEnergyUnits()>=2000){
-        getWorld()->giveBirthToAnt(getX(), getY(), m_compiler, myImageID);
+        getWorld()->giveBirthToAnt(getX(), getY(), m_compiler, myImageID, this);
         decreaseEnergyBy(1500);
         m_numberOfAnts++;
     }
@@ -200,6 +201,10 @@ void Anthill::setCompiler(Compiler* c)
     m_compiler = c;
 }
 
+void Anthill::antDied()
+{
+    m_numberOfAnts--;
+}
 
 // Food
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,7 +280,7 @@ bool Insect::eatFood(bool isGrasshopper)    //returns true if food was eaten, ot
 
 void Insect::becomeFood()   //when any insect dies, it becomes 100 units of food in that position
 {
-    getWorld()->addFoodToSquare(getX(), getY());
+    getWorld()->addFoodToSquare(getX(), getY(), 100);
 }
 
 void Insect::resetSleepTicks()
@@ -306,7 +311,6 @@ void Insect::setPoisoned()
     decreaseEnergyBy(150);
     if(isInsectDead())
         return;
-    //interpret commands
 }
 
 void Insect::walk(Direction curr)
@@ -336,8 +340,10 @@ void Insect::walk(Direction curr)
 void Ant::doSomething()
 {
     decreaseEnergyBy(1);
-    if(isInsectDead())
+    if(isInsectDead()){
+        m_anthill->antDied();
         return;
+    }
     if(checkIfStunned())
     {
         decreaseSleepTicks();
@@ -345,6 +351,7 @@ void Ant::doSomething()
             setStunnedState(false);
     }
     if(!interpretInstructions()){
+        m_anthill->antDied();
         setDead();
         return;
     }
@@ -424,7 +431,8 @@ bool Ant::interpretInstructions()
                 doneInterpreting = true;
                 break;
             case Compiler::dropFood:
-                getWorld()->addFoodToSquare(getX(), getY());
+                getWorld()->addFoodToSquare(getX(), getY(), storedFood);
+                storedFood = 0;
                 instructionCounter++;
                 doneInterpreting = true;
                 break;
@@ -570,8 +578,19 @@ bool Ant::interpretInstructions()
 void Ant::setBitten(int damage)
 {
     decreaseEnergyBy(damage);
-    if(isInsectDead())
+    if(isInsectDead()){
+        m_anthill->antDied();
         return;
+    }
+}
+
+void Ant::setPoisoned()
+{
+    decreaseEnergyBy(150);
+    if(isInsectDead()){
+        m_anthill->antDied();
+        return;
+    }
 }
 
 int Ant::getColonyNumber()

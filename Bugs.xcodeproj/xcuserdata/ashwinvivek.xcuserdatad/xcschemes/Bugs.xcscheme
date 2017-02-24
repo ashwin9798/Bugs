@@ -70,6 +70,14 @@
             argument = "/Users/ashwinvivek/Downloads/Bugs/USCAnt.bug"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/ashwinvivek/Downloads/Bugs/AshwinAnt.bug"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/ashwinvivek/Downloads/Bugs/USCAnt.bug"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
