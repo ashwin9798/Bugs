@@ -34,7 +34,6 @@ public:
     bool loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compiler* c3);
 
     void removeObjectFromSimulation(Actor* object, int x, int y);
-    list<Actor*>& getObjectsAt(int x, int y);
     
     bool hasPebbleAt(int x, int y, Actor::Direction curr);
     int consumableFood(int x, int y, int units);   //returns how much food is in the square that can be eaten by a specific insect (Ants: 100, Grasshoppers: 200)
@@ -48,6 +47,7 @@ public:
     void becomeAdultGrassHopper(int x, int y);
     void bite(int strength, int x, int y, Insect* biter);
     void giveBirthToAnt(int x, int y, Compiler* c, int imageID, Anthill* hillPtr);
+    void antDied(int colonyNumber);
     
     //Deterrents
     void harmInsect(int x, int y, bool isPool);
@@ -60,7 +60,8 @@ public:
 private:
     int m_ticks;
     int m_numberOfAnthills;
-    Anthill* m_anthill[4];
+    string namesOfAnthills[4];
+    int numberOfAntsInEach[4];        //after an anthill dies, its ants can still be alive and win the game
     list<Actor*> m_container[64][64];
 };
 

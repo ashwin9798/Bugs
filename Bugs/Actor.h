@@ -29,7 +29,7 @@ public:
     ~Actor(){}
 
     virtual void doSomething() = 0;
-    Direction pickRandomDirection();
+    Direction pickRandomDirection() const;
     StudentWorld* getWorld() const;
     void setDead();
     bool isAlive();
@@ -41,6 +41,13 @@ public:
     virtual int howManyPheromonesHere();
     virtual bool isDangerousToAnt(int colonyNumber);   //virtual function to identify dangerous objects to an ant of a specified colony number
     
+    virtual bool isInsect() const;
+    virtual bool isHarmableInsect() const;
+    
+    virtual void getStunned();              // a do nothing implementation inherited by insect
+    virtual void getPoisoned();             // a do nothing implementation inherited by insect
+    virtual void getBitten(int damage);               // a do nothing implementation inherited by insect
+    virtual void decreaseEnergyBy(int howMuch);     // a do nothing implementation inherited by food
 private:
     StudentWorld* myWorld;
     bool m_alive;
@@ -57,7 +64,7 @@ public:
     virtual void doSomething()=0;
     int getEnergyUnits() const;
     void increaseEnergyBy(int units);
-    void decreaseEnergyBy(int units);
+    virtual void decreaseEnergyBy(int units);       //inherited from the actor class
     
     int myFoodEaten(int unitsToConsume);
     
@@ -74,7 +81,7 @@ public:
     ~Deterrent(){}
     
     virtual void doSomething() = 0;
-    virtual void harmInsect(bool isStunning);  //Stunning and poisoning are the same process, (one calls setBitten, the other calls setPoison)
+    void harmInsect(bool isStunning);  //Stunning and poisoning are the same process, (one calls setBitten, the other calls setPoison)
 };
 
 
@@ -98,13 +105,16 @@ public:
     virtual void doSomething() = 0;
     ~Insect(){}
     
-    virtual void setPoisoned();
-    virtual void setBitten(int damage)=0;
+    virtual void getPoisoned();
+    virtual void getBitten(int damage)=0;
+    virtual bool isInsect() const;
     
-    virtual void setStunnedState(bool state);
+    virtual void getStunned();
     
-    bool checkIfSleeping();
-    bool checkIfStunned();
+    void setStunnedState(bool state);
+    
+    bool checkIfSleeping() const;
+    bool checkIfStunned() const;
     
     void decreaseSleepTicks();
     void resetSleepTicks();
@@ -128,7 +138,7 @@ class Ant : public Insect
 {
 public:
     //colony number is the anthill index (compiler index)
-    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY, Anthill* hillPtr):
+    Ant(StudentWorld* ptr, Compiler* whichCompiler, int imageID, int startX, int startY):
     Insect(ptr, imageID, startX, startY,  1500, pickRandomDirection(), 1),
     m_pointerToMyCompilerObject(whichCompiler),
     instructionCounter(0)
@@ -140,11 +150,12 @@ public:
         lastRandomNumberGenerated = 0;
         birthX = startX;
         birthY = startY;
-        m_anthill = hillPtr;
     }
     virtual void doSomething();
-    virtual void setBitten(int damage);
-    virtual void setPoisoned();
+    virtual void getBitten(int damage);
+    virtual void getPoisoned();
+    virtual bool isHarmableInsect() const;
+    
     bool interpretInstructions();
     int getColonyNumber();
     bool isDangerousToAnt(int colonyNumber);
@@ -159,7 +170,6 @@ private:
     int storedFood;
     int birthX;
     int birthY;
-    Anthill* m_anthill;
 };
 
 
@@ -172,7 +182,7 @@ public:
         distanceToWalk = randomDistance();
     }
     virtual void doSomething();
-    virtual void setBitten(int damage);
+    virtual void getBitten(int damage);
     
     int randomDistance();
     
@@ -191,7 +201,8 @@ class BabyGrassHopper : public GrassHopper
 public:
     BabyGrassHopper(StudentWorld* ptr, int startX, int startY): GrassHopper(ptr, startX, startY, IID_BABY_GRASSHOPPER,500){}
     virtual void doSomething();
-    virtual void setBitten(int damage);
+    virtual void getBitten(int damage);
+    virtual bool isHarmableInsect() const;
     void becomeAdult();
     
 private:

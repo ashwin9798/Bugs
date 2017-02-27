@@ -25,7 +25,7 @@ const double PI = 4*atan(1.0);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Random start direction
-Actor::Direction Actor::pickRandomDirection()
+Actor::Direction Actor::pickRandomDirection() const
 {
     Direction start = none;
     
@@ -84,6 +84,30 @@ bool Actor::isDangerousToAnt(int colonyNumber)
 {
     return false;
 }
+bool Actor::isInsect() const
+{
+    return false;
+}
+bool Actor::isHarmableInsect() const
+{
+    return false;
+}
+void Actor::getStunned()
+{
+    
+}
+void Actor::getPoisoned()
+{
+    
+}
+void Actor::getBitten(int damage)
+{
+    
+}
+void Actor::decreaseEnergyBy(int howMuch)
+{
+    
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************/
@@ -117,7 +141,7 @@ void WaterPool::doSomething()
 
 void Poison::doSomething()
 {
-    harmInsect(false);      //false identifies it as poison
+    (false);      //false identifies it as poison
 }
 
 bool Poison::isDangerousToAnt(int colonyNumber)
@@ -178,7 +202,6 @@ void Anthill::doSomething()
     if(getEnergyUnits()>=2000){
         getWorld()->giveBirthToAnt(getX(), getY(), m_compiler, myImageID, this);
         decreaseEnergyBy(1500);
-        m_numberOfAnts++;
     }
     
 }
@@ -203,7 +226,7 @@ void Anthill::setCompiler(Compiler* c)
 
 void Anthill::antDied()
 {
-    m_numberOfAnts--;
+    getWorld()->antDied(myImageID); //imageID is the same as the colony number of the ant
 }
 
 // Food
@@ -246,14 +269,14 @@ int Pheromone::howManyPheromonesHere()
 /**************************************************************************************************/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Insect::checkIfSleeping()
+bool Insect::checkIfSleeping() const
 {
     if(m_sleepTicks > 0)
         return true;
     return false;
 }
 
-bool Insect::checkIfStunned()
+bool Insect::checkIfStunned() const
 {
     return isStunned;
 }
@@ -299,14 +322,15 @@ bool Insect::isInsectDead()
     return false;
 }
 
-void Insect::setStunnedState(bool state)
+void Insect::getStunned()       //if it's not stunned get stunned, otherwise do nothing
 {
-    if(state)
+    if(!checkIfStunned()){
         m_sleepTicks+=2;
-    isStunned = state;
+        isStunned = true;
+    }
 }
 
-void Insect::setPoisoned()
+void Insect::getPoisoned()
 {
     decreaseEnergyBy(150);
     if(isInsectDead())
@@ -334,6 +358,16 @@ void Insect::walk(Direction curr)
     }
 }
 
+bool Insect::isInsect() const
+{
+    return true;
+}
+
+void Insect::setStunnedState(bool state)
+{
+    isStunned = state;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ant Implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,17 +375,17 @@ void Ant::doSomething()
 {
     decreaseEnergyBy(1);
     if(isInsectDead()){
-        m_anthill->antDied();
+        getWorld()->antDied(colonyNumber);
         return;
     }
     if(checkIfStunned())
     {
         decreaseSleepTicks();
-        if(checkIfSleeping())
+        if(!checkIfSleeping())
             setStunnedState(false);
     }
     if(!interpretInstructions()){
-        m_anthill->antDied();
+        getWorld()->antDied(colonyNumber);
         setDead();
         return;
     }
@@ -485,18 +519,26 @@ bool Ant::interpretInstructions()
                         case up:
                             if(getWorld()->checkDangerousObjects(getX(), getY()+1, colonyNumber, false))
                                 instructionCounter = stoi(cmd.operand2);
+                            else
+                                instructionCounter++;
                             break;
                         case down:
                             if(getWorld()->checkDangerousObjects(getX(), getY()-1, colonyNumber, false))
                                 instructionCounter = stoi(cmd.operand2);
+                            else
+                                instructionCounter++;
                             break;
                         case left:
                             if(getWorld()->checkDangerousObjects(getX()-1, getY(), colonyNumber, false))
                                 instructionCounter = stoi(cmd.operand2);
+                            else
+                                instructionCounter++;
                             break;
                         case right:
                             if(getWorld()->checkDangerousObjects(getX()+1, getY(), colonyNumber, false))
                                 instructionCounter = stoi(cmd.operand2);
+                            else
+                                instructionCounter++;
                             break;
                     }
                 }
@@ -575,20 +617,20 @@ bool Ant::interpretInstructions()
     return true;
 }
 
-void Ant::setBitten(int damage)
+void Ant::getBitten(int damage)
 {
     decreaseEnergyBy(damage);
     if(isInsectDead()){
-        m_anthill->antDied();
+        getWorld()->antDied(colonyNumber);
         return;
     }
 }
 
-void Ant::setPoisoned()
+void Ant::getPoisoned()
 {
     decreaseEnergyBy(150);
     if(isInsectDead()){
-        m_anthill->antDied();
+        getWorld()->antDied(colonyNumber);
         return;
     }
 }
@@ -597,11 +639,17 @@ int Ant::getColonyNumber()
 {
     return colonyNumber;
 }
+
 bool Ant::isDangerousToAnt(int colonyNumber){
     if(getColonyNumber() != colonyNumber)
         return true;
     return false;
 }
+bool Ant::isHarmableInsect() const
+{
+    return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Grasshopper Implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -666,7 +714,7 @@ int GrassHopper::getDistanceToWalk() const
     return distanceToWalk;
 }
 
-void GrassHopper::setBitten(int damage)
+void GrassHopper::getBitten(int damage)
 {
     decreaseEnergyBy(damage);
     if(isInsectDead())
@@ -701,7 +749,8 @@ void GrassHopper::decreaseDistanceToWalk()
     distanceToWalk--;
 }
 
-bool GrassHopper::isDangerousToAnt(int colonyNumber){
+bool GrassHopper::isDangerousToAnt(int colonyNumber)
+{
     return true;
 }
 
@@ -748,9 +797,9 @@ void BabyGrassHopper::doSomething()
     }
     else
     {
-        if(checkIfStunned())
-            setStunnedState(false);       //when the insect moves, it is not stunned
         walk(current);
+        if(!checkIfStunned())
+            setStunnedState(false);       //when the insect moves, it is not stunned
         decreaseDistanceToWalk();
     }
     
@@ -762,11 +811,15 @@ void BabyGrassHopper::becomeAdult()
     getWorld()->becomeAdultGrassHopper(getX(), getY());
 }
 
-void BabyGrassHopper::setBitten(int damage)
+void BabyGrassHopper::getBitten(int damage)
 {
     decreaseEnergyBy(damage);
     if(isInsectDead())
         return;
+}
+bool BabyGrassHopper::isHarmableInsect() const
+{
+    return true;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

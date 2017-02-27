@@ -26,6 +26,11 @@ StudentWorld::StudentWorld(string assetDir): GameWorld(assetDir), m_ticks(0), m_
             m_container[i][j].front()=nullptr;
         }
     }
+    
+    for(int i=0; i<4; i++)
+    {
+        numberOfAntsInEach[i] = -1;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,11 +116,11 @@ int StudentWorld::move()
         }
     }
     updateTicks(); //increments ticks by one and also sets each actor's didAct variable to false for the new tick
-    if(m_ticks == 1000){
+    if(m_ticks == 2000){
         if(getWinningAntNumber() == -1)
             return GWSTATUS_NO_WINNER;
         else{
-            setWinner(m_anthill[getWinningAntNumber()]->getColonyName());
+            setWinner(namesOfAnthills[getWinningAntNumber()]);
         }
     }
     return GWSTATUS_CONTINUE_GAME;
@@ -148,10 +153,6 @@ StudentWorld::~StudentWorld()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Container functions (list)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-list<Actor*>& StudentWorld::getObjectsAt(int x, int y)
-{
-    return m_container[x][y];
-}
 
 void StudentWorld::removeObjectFromSimulation(Actor *object, int x, int y)
 {
@@ -200,6 +201,8 @@ bool StudentWorld::hasPebbleAt(int x, int y, Actor::Direction curr)
             else
                 return true;
             break;
+        default:
+            break;
     }
     for(list<Actor*>::iterator it = m_container[x1][y1].begin(); it!=m_container[x1][y1].end(); it++)
     {
@@ -238,7 +241,7 @@ int StudentWorld::getWinningAntNumber()
 {
     vector<int> livingAnthills;
     for(int i=0; i<4; i++){
-        if(m_anthill[i] != nullptr)
+        if(numberOfAntsInEach[i]!=-1)
             livingAnthills.push_back(i);
     }
     bool noWinner = true;
@@ -247,9 +250,9 @@ int StudentWorld::getWinningAntNumber()
     
     for(int i=0; i<livingAnthills.size(); i++)
     {
-        if(m_anthill[livingAnthills[i]]->getNumberOfAnts() > m_anthill[maximum]->getNumberOfAnts())
+        if(numberOfAntsInEach[livingAnthills[i]] > numberOfAntsInEach[maximum])
         {
-            if(m_anthill[livingAnthills[i]]->getNumberOfAnts() > 5)
+            if(numberOfAntsInEach[livingAnthills[i]] > 5)
             {
                 maximum = livingAnthills[i];
                 noWinner = false;
@@ -307,32 +310,36 @@ bool StudentWorld::loadFieldFile(Compiler* c0, Compiler* c1, Compiler* c2, Compi
                     
                 case Field::FieldItem::anthill0:
                     if(c0 != nullptr){
-                        m_anthill[0] = new Anthill(this, c0, IID_ANT_TYPE0, i, j);
-                        m_container[i][j].push_back(m_anthill[0]);
+                        m_container[i][j].push_back(new Anthill(this, c0, IID_ANT_TYPE0, i, j));
+                        numberOfAntsInEach[0] = 0;
+                        namesOfAnthills[0] = c0->getColonyName();
                         m_numberOfAnthills++;
                     }
                     break;
                     
                 case Field::FieldItem::anthill1:
                     if(c1 != nullptr){
-                        m_anthill[1] = new Anthill(this, c1, IID_ANT_TYPE1, i, j);
-                        m_container[i][j].push_back(m_anthill[1]);
+                        m_container[i][j].push_back(new Anthill(this, c1, IID_ANT_TYPE1, i, j));
+                        numberOfAntsInEach[1] = 0;
+                        namesOfAnthills[1] = c1->getColonyName();
                         m_numberOfAnthills++;
                     }
                     break;
                     
                 case Field::FieldItem::anthill2:
                     if(c2 != nullptr){
-                        m_anthill[2] = new Anthill(this, c2, IID_ANT_TYPE2, i, j);
-                        m_container[i][j].push_back(m_anthill[2]);
+                        m_container[i][j].push_back(new Anthill(this, c2, IID_ANT_TYPE2, i, j));
+                        numberOfAntsInEach[2] = 0;
+                        namesOfAnthills[2] = c2->getColonyName();
                         m_numberOfAnthills++;
                     }
                     break;
                     
                 case Field::FieldItem::anthill3:
                     if(c3 != nullptr){
-                        m_anthill[3] = new Anthill(this, c3, IID_ANT_TYPE3, i, j);
-                        m_container[i][j].push_back(m_anthill[3]);
+                        m_container[i][j].push_back(new Anthill(this, c3, IID_ANT_TYPE3, i, j));
+                        numberOfAntsInEach[3] = 0;
+                        namesOfAnthills[3] = c3->getColonyName();
                         m_numberOfAnthills++;
                     }
                     break;
@@ -369,14 +376,14 @@ void StudentWorld::displayGameText()
     
     int antsAnthill0 = -1, antsAnthill1 = -1, antsAnthill2 = -1, antsAnthill3 = -1;
     
-    if(m_anthill[0]!=nullptr)
-        antsAnthill0 = m_anthill[0]->getNumberOfAnts();
-    if(m_anthill[1]!=nullptr)
-        antsAnthill1 = m_anthill[1]->getNumberOfAnts();
-    if(m_anthill[2]!=nullptr)
-        antsAnthill2 = m_anthill[2]->getNumberOfAnts();
-    if(m_anthill[3]!=nullptr)
-        antsAnthill3 = m_anthill[3]->getNumberOfAnts();
+    if(numberOfAntsInEach[0] != -1)
+        antsAnthill0 = numberOfAntsInEach[0];
+    if(numberOfAntsInEach[1]!= -1)
+        antsAnthill1 = numberOfAntsInEach[1];
+    if(numberOfAntsInEach[2] != -1)
+        antsAnthill2 = numberOfAntsInEach[2];
+    if(numberOfAntsInEach[3]!= -1)
+        antsAnthill3 = numberOfAntsInEach[3];
     int winningAntNumber = getWinningAntNumber();
     
     string s = formatGameText(ticks, antsAnthill0, antsAnthill1, antsAnthill2, antsAnthill3, winningAntNumber);
@@ -395,27 +402,27 @@ std::string StudentWorld::formatGameText(int ticks, int antsAnt0, int antsAnt1, 
         switch(i){
             case 0:
                 if(antsAnt0 != -1 && winningAntNumber ==0)
-                    oss << m_anthill[0]->getColonyName() << "*: " << setw(2) << antsAnt0 << "  ";
+                    oss << namesOfAnthills[0] << "*: " << setw(2) << antsAnt0 << "  ";
                 else if(antsAnt0!=-1)
-                    oss << m_anthill[0]->getColonyName() << ": " << setw(2) << antsAnt0 << "  ";
+                    oss << namesOfAnthills[0] << ": " << setw(2) << antsAnt0 << "  ";
                 break;
             case 1:
                 if(antsAnt1 != -1 && winningAntNumber ==1)
-                    oss << m_anthill[1]->getColonyName() << "*: " << setw(2) << antsAnt1 << "  ";
+                    oss << namesOfAnthills[1] << "*: " << setw(2) << antsAnt1 << "  ";
                 else if(antsAnt1!=-1)
-                    oss << m_anthill[1]->getColonyName() << ": " << setw(2) << antsAnt1 << "  ";
+                    oss << namesOfAnthills[1] << ": " << setw(2) << antsAnt1 << "  ";
                 break;
             case 2:
                 if(antsAnt2 != -1 && winningAntNumber ==2)
-                    oss << m_anthill[2]->getColonyName() << "*: " << setw(2) << antsAnt2 << "  ";
+                    oss << namesOfAnthills[2] << "*: " << setw(2) << antsAnt2 << "  ";
                 else if(antsAnt2!=-1)
-                    oss << m_anthill[2]->getColonyName() << ": " << setw(2) << antsAnt2 << "  ";
+                    oss << namesOfAnthills[2] << ": " << setw(2) << antsAnt2 << "  ";
                 break;
             case 3:
                 if(antsAnt3 != -1 && winningAntNumber ==3)
-                    oss << m_anthill[3]->getColonyName() << "*: " << setw(2) << antsAnt3;
+                    oss << namesOfAnthills[3] << "*: " << setw(2) << antsAnt3;
                 else if(antsAnt3!=-1)
-                    oss << m_anthill[3]->getColonyName() << ": " << setw(2) << antsAnt3;
+                    oss << namesOfAnthills[3] << ": " << setw(2) << antsAnt3;
                 
                 break;
         }
@@ -445,7 +452,7 @@ int StudentWorld::consumableFood(int x, int y, int units)
         {
             if((*it)->howMuchFoodHere() >= units)
             {
-                Food* q = dynamic_cast<Food*>(*it);
+                Actor* q = *it;
                 q->decreaseEnergyBy(units);
                 return units;
             }
@@ -523,40 +530,32 @@ void StudentWorld::bite(int strength, int x, int y, Insect* biter)     //the str
     {
         Actor* q = *it;
         if(q != nullptr)
-            if(typeid(*q) == typeid(GrassHopper) || typeid(*q) == typeid(BabyGrassHopper) ||typeid(*q)==typeid(Ant)){   //need to add ant
-                
+            if(q->isInsect())
+            {
                 if(typeid(*q) == typeid(BabyGrassHopper)){
-                    typeIDsOfEach.push_back("BabyGrassHopper");
                     insectsInSameSquare.push_back(*it);
                 }
                 else if(typeid(*q) == typeid(GrassHopper)){
                     if(!biterIsAnt)
                     {
-                        if(dynamic_cast<GrassHopper*>(q)!= dynamic_cast<GrassHopper*>(biter)){
-                            typeIDsOfEach.push_back("GrassHopper");
+                        if(dynamic_cast<GrassHopper*>(q)!= dynamic_cast<GrassHopper*>(biter))
                             insectsInSameSquare.push_back(*it);
-                        }
+                        
                     }
                     else
-                    {
-                    typeIDsOfEach.push_back("GrassHopper");
-                    insectsInSameSquare.push_back(*it);
-                    }
+                        insectsInSameSquare.push_back(*it);
+
                 }
                 else if(typeid(*q) == typeid(Ant)){
                     if(biterIsAnt){
                         Ant* beingBitten = dynamic_cast<Ant*>(q);
                         Ant* biting = dynamic_cast<Ant*>(biter);
                         if((beingBitten != biting) && (beingBitten->getColonyNumber() != biting->getColonyNumber())){
-                            typeIDsOfEach.push_back("Ant");
                             insectsInSameSquare.push_back(*it);
                         }
                     }
                     else
-                    {
-                        typeIDsOfEach.push_back("Ant");
                         insectsInSameSquare.push_back(*it);
-                    }
                 }
             }
 
@@ -567,21 +566,7 @@ void StudentWorld::bite(int strength, int x, int y, Insect* biter)     //the str
         int index = randInt(0, (insectsInSameSquare.size())-1);
         Actor* InsectToBite = insectsInSameSquare[index];
         
-        if(typeIDsOfEach[index] == "BabyGrassHopper")
-        {
-            BabyGrassHopper* v = dynamic_cast<BabyGrassHopper*>(InsectToBite);
-            v->setBitten(strength);
-        }
-        else if(typeIDsOfEach[index] == "GrassHopper")
-        {
-            GrassHopper* v = dynamic_cast<GrassHopper*>(InsectToBite);
-            v->setBitten(strength);
-        }
-        else if(typeIDsOfEach[index] == "Ant")
-        {
-            Ant* v = dynamic_cast<Ant*>(InsectToBite);
-            v->setBitten(strength);
-        }
+        InsectToBite->getBitten(strength);
     }
 }
 
@@ -592,8 +577,15 @@ void StudentWorld::becomeAdultGrassHopper(int x, int y)
 
 void StudentWorld::giveBirthToAnt(int x, int y, Compiler* c, int imageID, Anthill* hillPtr)
 {
-    m_container[x][y].push_back(new Ant(this, c, imageID, x, y, hillPtr));
+    m_container[x][y].push_back(new Ant(this, c, imageID, x, y));
+    numberOfAntsInEach[imageID]++;
 }
+
+void StudentWorld::antDied(int colonyNumber)
+{
+    numberOfAntsInEach[colonyNumber]--;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Deterrent Container Functions
 //
@@ -606,7 +598,6 @@ void StudentWorld::harmInsect(int x, int y, bool isPool)
     string typeID = "";
     
     vector<Actor*> insectsInSameSquare;
-    vector<string> typeIDsOfEach;
     
     list <Actor*>::iterator it=m_container[x][y].begin();
     
@@ -615,11 +606,7 @@ void StudentWorld::harmInsect(int x, int y, bool isPool)
         Actor* q = *it;
         if(q != nullptr)
         {
-            if(typeid(*q) == typeid(BabyGrassHopper) || typeid(*q) == typeid(Ant)){   //need to add ant
-                if(typeid(*q) == typeid(BabyGrassHopper))
-                    typeIDsOfEach.push_back("BabyGrassHopper");
-                else if(typeid(*q) == typeid(Ant))
-                    typeIDsOfEach.push_back("Ant");
+            if(q->isHarmableInsect()){
                 insectsInSameSquare.push_back(*it);
             }
         }
@@ -628,36 +615,17 @@ void StudentWorld::harmInsect(int x, int y, bool isPool)
     if(insectsInSameSquare.size() > 0)
     {
         vector<Actor*>::iterator it1 = insectsInSameSquare.begin();
-        vector<string>::iterator it2 = typeIDsOfEach.begin();
         while(it1!=insectsInSameSquare.end())
         {
-            if(*it2 == "BabyGrassHopper"){
-                BabyGrassHopper* v = dynamic_cast<BabyGrassHopper*>(*it1);
-                if(isPool){
-                    if(!v->checkIfStunned())
-                    {
-                        v->setStunnedState(true);
-                    }
-                }
-                else{
-                    v->setPoisoned();
-                }
+            Actor* v = *it1;
+            if(isPool){
+                v->getStunned();
             }
-            else if(*it2 == "Ant"){
-                Ant* v = dynamic_cast<Ant*>(*it1);
-                if(isPool){
-                    if(!v->checkIfStunned())
-                    {
-                        v->setStunnedState(true);
-                    }
-                }
-                else{
-                    v->setPoisoned();
-                }
+            else{
+                v->getPoisoned();
             }
             
             it1++;
-            it2++;
         }
     }
 }
@@ -680,8 +648,8 @@ bool StudentWorld::emitOrDetectPheromone(int x, int y, int imageID, int colonyNu
     {
         if((*it)->howManyPheromonesHere() > 0)     //calls the derived class function on each object
         {
+            q = dynamic_cast<Pheromone*>(*it);
             if(isEmitting){
-                q = dynamic_cast<Pheromone*>(*it);
                 if(q->getColonyNumber() == colonyNumber){
                     myPheromoneHere = true;
                     if(q->getEnergyUnits() >= 512)
@@ -692,7 +660,8 @@ bool StudentWorld::emitOrDetectPheromone(int x, int y, int imageID, int colonyNu
             }
             else
             {
-                return true;
+                if(q->getColonyNumber() == colonyNumber)
+                    return true;
             }
         }
         it++;
@@ -717,7 +686,7 @@ bool StudentWorld::checkDangerousObjects(int x, int y, int colonyNumber, bool on
         {
             if(onlyCheckInsects){
                 Actor* q = *it;
-                if(dynamic_cast<Ant*>(q) != nullptr || dynamic_cast<GrassHopper*>(q) != nullptr)
+                if(q->isInsect())
                     return true;
             }
             else
@@ -732,6 +701,5 @@ bool StudentWorld::checkDangerousObjects(int x, int y, int colonyNumber, bool on
 
 void StudentWorld::deleteAnthill(int colonyNumber)
 {
-    m_anthill[colonyNumber] = nullptr;
     m_numberOfAnthills--;
 }
