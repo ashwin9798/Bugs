@@ -7,4 +7,5 @@ The players program their ants with code that they write in the "Bugs" language,
 What I did:
 
 -> I designed the compiler for the ants, which basically means I wrote code that is able to interprete the code written by the user, and use that to manipulate the ants in the game.
+
 -> I created the classes for all objects, of which there are about 10. The object hierarchy displays well thought out inheritance.
